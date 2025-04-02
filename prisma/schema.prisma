@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model Transaction {
+  id Int @id @default(autoincrement())
+  transactionType String
+  currencyCode String
+  sterlingAmount Decimal @db.Decimal(10, 2)
+  foreinAmount Decimal @db.Decimal(10, 2)
+  exchangeRate Decimal @db.Decimal(10, 6)
+  paymentMethod String
+  transactionDate DateTime @default(now())
+  operatorId Int
+
+  // Customer Info
+  customerFirstName String
+  customerLastName String
+  customerPostcode String
+  customerAddressLine1 String
+  customerDOB DateTime?
+
+  // ID Fields
+  primaryIdType String?
+  primaryIdNumber String?
+  primaryIdIssueDate DateTime?
+  primaryIdExpiryDate DateTime?
+
+  // Secondary ID Fields
+  secondaryIdType String?
+  secondaryIdNumber String?
+  secondaryIdIssueDate DateTime?
+  secondaryIdExpiryDate DateTime?
+
+  // Transaction Status
+  confirmationStepsCompleted Boolean @default(false)
+  amountCounted Boolean @default(false)
+  readBackDone Boolean @default(false)
+
+  notes String?
+}

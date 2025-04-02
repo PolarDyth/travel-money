@@ -74,7 +74,7 @@ export default function ClientLayout({ children }: Props) {
 
               <div className="mt-8 space-y-1">
                 <NavItem href="/" icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
-                <NavItem href="/exchange" icon={<ArrowLeftRight className="h-5 w-5" />} label="Currency Exchange" />
+                <NavItem href="/transaction" icon={<ArrowLeftRight className="h-5 w-5" />} label="Currency Exchange" />
                 <NavItem href="/orders" icon={<ShoppingBag className="h-5 w-5" />} label="Online Orders" />
                 <NavItem href="/stock" icon={<Package className="h-5 w-5" />} label="Stock Management" />
                 <NavItem href="/rates" icon={<Globe className="h-5 w-5" />} label="Exchange Rates" />

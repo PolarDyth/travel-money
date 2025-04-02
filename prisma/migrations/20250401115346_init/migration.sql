@@ -1,0 +1,31 @@
+-- CreateTable
+CREATE TABLE "Transaction" (
+    "id" SERIAL NOT NULL,
+    "transactionType" TEXT NOT NULL,
+    "currencyCode" TEXT NOT NULL,
+    "sterlingAmount" DECIMAL(10,2) NOT NULL,
+    "foreinAmount" DECIMAL(10,2) NOT NULL,
+    "exchangeRate" DECIMAL(10,6) NOT NULL,
+    "paymentMethod" TEXT NOT NULL,
+    "transactionDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "operatorId" INTEGER NOT NULL,
+    "customerFirstName" TEXT NOT NULL,
+    "customerLastName" TEXT NOT NULL,
+    "customerPostcode" TEXT NOT NULL,
+    "customerAddressLine1" TEXT NOT NULL,
+    "customerDOB" TIMESTAMP(3),
+    "primaryIdType" TEXT,
+    "primaryIdNumber" TEXT,
+    "primaryIdIssueDate" TIMESTAMP(3),
+    "primaryIdExpiryDate" TIMESTAMP(3),
+    "secondaryIdType" TEXT,
+    "secondaryIdNumber" TEXT,
+    "secondaryIdIssueDate" TIMESTAMP(3),
+    "secondaryIdExpiryDate" TIMESTAMP(3),
+    "confirmationStepsCompleted" BOOLEAN NOT NULL DEFAULT false,
+    "amountCounted" BOOLEAN NOT NULL DEFAULT false,
+    "readBackDone" BOOLEAN NOT NULL DEFAULT false,
+    "notes" TEXT,
+
+    CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
+);
