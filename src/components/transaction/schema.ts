@@ -1,32 +1,39 @@
 import { z } from 'zod';
 
-// ID validation
-const idSchema = z.object({
+// ID validation schema
+export const idSchema = z.object({
   type: z.enum(['PASSPORT', 'DRIVERS_LICENSE', 'UTILITY_BILL', 'BANK_STATEMENT', 'OTHER']),
   number: z.string().min(3),
   issueDate: z.coerce.date(),
   expiryDate: z.coerce.date()
 });
 
-// Main transaction schema
-export const transactionSchema = z.object({
-  transactionType: z.enum(['BUY', 'SELL']),
+export const transactionTypeSchema = z.enum(['SELL', 'BUY']);
+
+// Transaction details schema
+export const currencyDetailsSchema = z.object({
   currencyCode: z.string().length(3).toUpperCase(),
   sterlingAmount: z.coerce.number().positive(),
   foreignAmount: z.coerce.number().positive(),
   exchangeRate: z.coerce.number().positive(),
   paymentMethod: z.enum(['CASH', 'CARD']),
-
+  
   // Operator
   operatorId: z.number().int().positive(),
+});
 
+// Customer information schema
+export const customerInfoSchema = z.object({
   // Customer Info
   customerFirstName: z.string().min(1),
   customerLastName: z.string().min(1),
   customerPostcode: z.string().min(1),
   customerAddressLine1: z.string().min(1),
   customerDOB: z.coerce.date().optional(),
+});
 
+// Verification schema
+export const verificationSchema = z.object({
   // ID Fields
   primaryId: idSchema.optional(),
   secondaryId: idSchema.optional(),
@@ -37,9 +44,11 @@ export const transactionSchema = z.object({
   readBackDone: z.boolean().optional(),
 
   // Notes
-  notes: z.string().optional()
-})
-.superRefine((data, ctx) => {
+  notes: z.string().optional(),
+  
+  // Transaction amount (needed for validation)
+  sterlingAmount: z.coerce.number().positive()
+}).superRefine((data, ctx) => {
   const amount = data.sterlingAmount;
 
   if (amount >= 500 && !data.primaryId) {
@@ -66,34 +75,56 @@ export const transactionSchema = z.object({
     }
   }
 });
+// Main transaction schema - combining all schemas
+export const transactionSchema = z.object({
+  transactionType: transactionTypeSchema,
+  currencyDetails: currencyDetailsSchema,
+  customerInfo: customerInfoSchema,
+  verification: verificationSchema,
+})
 
-export const stepSchemas = [
-  z.object({
-    transactionType: z.enum(['BUY', 'SELL']),
-  }),
-  z.object({
-    currencyCode: z.string().length(3),
-    sterlingAmount: z.coerce.number().positive().min(1),
-    foreignAmount: z.coerce.number().positive().min(1),
-    exchangeRate: z.coerce.number().positive(),
-    paymentMethod: z.enum(['CASH', 'CARD']),
-  }),
-  z.object({
-    customerFirstName: z.string().min(1),
-    customerLastName: z.string().min(1),
-    customerPostcode: z.string().min(1),
-    customerAddressLine1: z.string().min(1),
-    customerDOB: z.coerce.date().optional(),
-  }),
-  z.object({
-    primaryId: idSchema.optional(),
-    secondaryId: idSchema.optional()
-  }),
-  z.object({
-    confirmationStepsCompleted: z.boolean().optional(),
-    amountCounted: z.boolean().optional(),
-    readBackDone: z.boolean().optional()
-  }),
-  transactionSchema
-] as const;
+export type TransactionSchema = z.infer<typeof transactionSchema>;
 
+// Step schemas for multi-step form
+export function getSchemaSteps(step: number): keyof TransactionSchema {
+  switch (step) {
+    case 0:
+      return "transactionType";
+    case 1:
+      return "currencyDetails";
+    case 2:
+      return "customerInfo";
+    case 3:
+      return "verification";
+    default:
+      throw new Error('Invalid step number');
+  }
+}
+
+export const defaultTransaction: TransactionSchema = {
+  transactionType: 'SELL',
+  currencyDetails: {
+    currencyCode: 'EUR',
+    sterlingAmount: 0,
+    foreignAmount: 0,
+    exchangeRate: 0,
+    paymentMethod: 'CASH',
+    operatorId: 0
+  },
+  customerInfo: {
+    customerFirstName: '',
+    customerLastName: '',
+    customerPostcode: '',
+    customerAddressLine1: '',
+    customerDOB: undefined
+  },
+  verification: {
+    primaryId: undefined,
+    secondaryId: undefined,
+    confirmationStepsCompleted: false,
+    amountCounted: false,
+    readBackDone: false,
+    notes: '',
+    sterlingAmount: 0
+  }
+}
