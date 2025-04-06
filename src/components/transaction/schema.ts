@@ -16,10 +16,10 @@ export const currencyDetailsSchema = z.object({
   sterlingAmount: z.coerce.number().positive(),
   foreignAmount: z.coerce.number().positive(),
   exchangeRate: z.coerce.number().positive(),
-  paymentMethod: z.enum(['CASH', 'CARD']),
   
+  paymentMethod: z.enum(['CASH', 'CARD']),
   // Operator
-  operatorId: z.number().int().positive(),
+  operatorId: z.number().int().optional(),
 });
 
 // Customer information schema
@@ -107,7 +107,7 @@ export const defaultTransaction: TransactionSchema = {
     currencyCode: 'EUR',
     sterlingAmount: 0,
     foreignAmount: 0,
-    exchangeRate: 0,
+    exchangeRate: 1.17,
     paymentMethod: 'CASH',
     operatorId: 0
   },

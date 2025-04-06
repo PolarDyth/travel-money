@@ -63,7 +63,7 @@ export default function Transaction() {
   const nextStep = async () => {
     const valid = await methods.trigger(getSchemaSteps(currentStep));
     if (valid) setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
-    else console.error("Validation failed for step:", currentStep);
+    else console.error("Validation failed for step:", methods.formState.errors);
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
