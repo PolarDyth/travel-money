@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 // ID validation schema
 export const idSchema = z.object({
-  type: z.enum(['PASSPORT', 'DRIVERS_LICENSE', 'UTILITY_BILL', 'BANK_STATEMENT', 'OTHER']),
+  type: z.enum(['PASSPORT', 'DRIVERS_LICENSE', 'OTHER']),
+  secondaryType: z.enum(['DRIVERS_LICENSE', 'UTILITY_BILL', 'BANK_STATEMENT', 'OTHER']).optional(),
   number: z.string().min(3),
   issueDate: z.coerce.date(),
   expiryDate: z.coerce.date()
@@ -30,6 +31,8 @@ export const customerInfoSchema = z.object({
   customerPostcode: z.string().min(1),
   customerAddressLine1: z.string().min(1),
   customerDOB: z.coerce.date().optional(),
+  customerEmail: z.string().email().optional(),
+  customerPhone: z.number().optional().refine(),
 });
 
 // Verification schema

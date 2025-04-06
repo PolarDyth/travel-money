@@ -142,36 +142,34 @@ export default function Transaction() {
       {/* Step Content */}
       <div className="my-8">
         <FormProvider {...methods}>
-            <form onSubmit={onSubmit}>
-              {currentStep === 0 && (
-                <TransactionTypeForm
-                  transactionType={selectedTransactionType}
-                />
-              )}
+          <form onSubmit={onSubmit}>
+            {currentStep === 0 && (
+              <TransactionTypeForm transactionType={selectedTransactionType} />
+            )}
 
-              {currentStep === 1 && <CurrencyDetailsForm />}
-              <div className="flex items-center justify-between my-6">
-                <Button
-                  variant="outline"
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Previous
+            {currentStep === 1 && <CurrencyDetailsForm />}
+            <div className="flex items-center justify-between my-6">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Previous
+              </Button>
+              {currentStep < steps.length - 1 ? (
+                <Button type="button" onClick={nextStep}>
+                  Next
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                {currentStep < steps.length - 1 ? (
-                  <Button type="button" onClick={nextStep}>
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button type="submit">
-                    Complete Transaction
-                    <Check className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </form>
+              ) : (
+                <Button type="submit">
+                  Complete Transaction
+                  <Check className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </form>
         </FormProvider>
       </div>
     </main>
