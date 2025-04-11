@@ -31,11 +31,13 @@ export default function Home() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-sm text-gray-500">Welcome back, User!</p>
         </div>
+        <Link href={"/transaction"}>
         <Button className="hidden md:inline-flex">
           <span className="mr-2 flex items-center gap-4">
             <ArrowLeftRight /> New Transaction
           </span>
         </Button>
+        </Link>
       </div>
       <Stats />
       <div className="grid gap-6 md:grid-cols-7">

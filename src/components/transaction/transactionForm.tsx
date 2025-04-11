@@ -16,6 +16,7 @@ import { Progress } from "../ui/progress";
 import { redirect } from "next/navigation";
 import TransactionTypeForm from "./steps/transactionType";
 import CurrencyDetailsForm from "./steps/currencyDetails";
+import CustomerInfo from "./steps/customerInfo";
 
 const steps = [
   {
@@ -148,6 +149,8 @@ export default function Transaction() {
             )}
 
             {currentStep === 1 && <CurrencyDetailsForm />}
+
+            {currentStep === 2 && <CustomerInfo />}
             <div className="flex items-center justify-between my-6">
               <Button
                 variant="outline"

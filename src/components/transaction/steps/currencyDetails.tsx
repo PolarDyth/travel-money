@@ -23,83 +23,17 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { roundUpToNearest } from "@/lib/utils";
+import { currencies, Currency } from "@/data/currencies";
 
-const currencies = [
-  {
-    code: "EUR",
-    name: "Euro",
-    symbol: "€",
-    rate: 1.19,
-    buy: 1.31,
-    sell: 1.17,
-    denominations: [500, 200, 100, 50, 20, 10, 5],
-  },
-  {
-    code: "USD",
-    name: "US Dollar",
-    symbol: "$",
-    rate: 1.27,
-    buy: 1.45,
-    sell: 1.24,
-    denominations: [100, 50, 20, 10, 5, 2, 1],
-  },
-  {
-    code: "JPY",
-    name: "Japanese Yen",
-    symbol: "¥",
-    rate: 189.45,
-    buy: 194.1,
-    sell: 184.8,
-    denominations: [10000, 5000, 2000, 1000],
-  },
-  {
-    code: "AUD",
-    name: "Australian Dollar",
-    symbol: "A$",
-    rate: 1.92,
-    buy: 1.97,
-    sell: 1.87,
-    denominations: [100, 50, 20, 10, 5],
-  },
-  {
-    code: "CAD",
-    name: "Canadian Dollar",
-    symbol: "C$",
-    rate: 1.71,
-    buy: 1.75,
-    sell: 1.67,
-    denominations: [100, 50, 20, 10, 5],
-  },
-  {
-    code: "CHF",
-    name: "Swiss Franc",
-    symbol: "Fr.",
-    rate: 1.14,
-    buy: 1.17,
-    sell: 1.11,
-    denominations: [1000, 200, 100, 50, 20, 10],
-  },
-];
 
-function roundUpToNearest(num: number, multiple: GLfloat): number {
-  const val = Math.ceil(num / multiple) * multiple;
-  return parseFloat(val.toFixed(2));
-}
 
-type Currency = {
-  code: string;
-  name: string;
-  symbol: string;
-  rate: number;
-  buy: number;
-  sell: number;
-  denominations: number[];
-};
+
 
 export default function CurrencyDetailsForm() {
   const { register, control, watch, setValue } =
@@ -120,20 +54,20 @@ export default function CurrencyDetailsForm() {
     currencies.sort((a, b) => a.buy - b.buy);
   } else {
     currencies.sort((a, b) => a.sell - b.sell);
+}
+
+useEffect(() => {
+  if (sterlingValue < 500) {
+    setTransactionLevel("LOW");
+  } else if (sterlingValue >= 500 && sterlingValue < 5000) {
+    setTransactionLevel("MEDIUM");
+  } else {
+    setTransactionLevel("HIGH");
   }
+}, [sterlingValue]);
 
-  // Simple function to update transaction level
-  const updateTransactionLevel = (sterlingAmount: number) => {
-    if (sterlingAmount < 500) {
-      setTransactionLevel("LOW");
-    } else if (sterlingAmount < 5000) {
-      setTransactionLevel("MEDIUM");
-    } else {
-      setTransactionLevel("HIGH");
-    }
-  };
 
-  // Calculate exchange rate
+// Calculate exchange rate
   const calculateExchangeRate = (
     currency: Currency,
     transactionType: string
@@ -169,7 +103,6 @@ export default function CurrencyDetailsForm() {
     setValue("currencyDetails.sterlingAmount", newSterlingAmount);
     setValue("currencyDetails.foreignAmount", foreignAmount);
 
-    updateTransactionLevel(sterlingAmount);
   };
 
   // Handle foreign amount changes
@@ -204,7 +137,6 @@ export default function CurrencyDetailsForm() {
     setValue("currencyDetails.sterlingAmount", sterlingAmount);
     setValue("currencyDetails.foreignAmount", roundedForeignAmount);
 
-    updateTransactionLevel(sterlingAmount);
   };
 
   return (
@@ -406,12 +338,14 @@ export default function CurrencyDetailsForm() {
                             Cash
                           </Label>
                         </div>
+                        { selectedTransactionType === "SELL" && (
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="CARD" id="CARD" className="" />
                           <Label htmlFor="CARD" className="cursor-pointer">
                             Card
                           </Label>
                         </div>
+                        )}
                       </RadioGroup>
                     </FormItem>
                   </FormControl>
