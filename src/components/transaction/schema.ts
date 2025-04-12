@@ -4,6 +4,7 @@ import {
   sourceType,
   useOfFundsType,
 } from "@/constants/Identification";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
 
 // ID validation schema
@@ -56,7 +57,7 @@ export const customerInfoSchema = z.object({
   customerPostcode: z.string().min(1),
   customerAddressLine1: z.string().min(1),
   customerEmail: z.string().email().optional(),
-  customerPhone: z.string().min(10).max(16).optional(),
+  customerPhone: z.string().refine(isValidPhoneNumber).optional(),
 
   primaryId: standardIdSchema.optional(),
   secondaryId: enhancedIdSchema.optional(),

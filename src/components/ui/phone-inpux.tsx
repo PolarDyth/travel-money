@@ -102,7 +102,7 @@ const CountrySelect = React.memo(
 						role="combobox"
 						variant="outline"
 						aria-expanded={open}
-						className="flex gap-1 rounded-md rounded-e-none border-r-0 px-3 focus:z-10"
+						className="flex gap-1 rounded-md py-0 rounded-e-none border-r-0 px-3 focus:z-10"
 					>
 						<FlagComponent
 							country={selectedCountry}

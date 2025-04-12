@@ -107,14 +107,14 @@ export default function CustomerDetails() {
           <FormItem>
             <FormLabel>Phone</FormLabel>
             <FormControl>
+              <div className="h-fit">
               <PhoneInput
                 placeholder="Customer Phone"
                 className="input"
-                {...field}
-                onChange={(value) => field.onChange(value)}
                 defaultCountry="GB"
-                international
+                {...field}
                 />
+                </div>
             </FormControl>
           </FormItem>
         )}
