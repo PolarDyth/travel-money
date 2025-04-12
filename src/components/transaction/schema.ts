@@ -150,7 +150,6 @@ export const defaultTransaction: TransactionSchema = {
     customerAddressLine1: "",
     customerCity: "",
     customerCountry: "",
-    customerFullAddress: "",
     customerEmail: undefined,
     customerPhone: undefined,
     primaryId: undefined,
