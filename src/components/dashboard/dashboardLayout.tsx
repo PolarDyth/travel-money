@@ -78,7 +78,7 @@ export default function ClientLayout({ children }: Props) {
                 <NavItem href="/orders" icon={<ShoppingBag className="h-5 w-5" />} label="Online Orders" />
                 <NavItem href="/stock" icon={<Package className="h-5 w-5" />} label="Stock Management" />
                 <NavItem href="/rates" icon={<Globe className="h-5 w-5" />} label="Exchange Rates" />
-                <NavItem href="/overs-shorts" icon={<Coins className="h-5 w-5" />} label="Overs & Shorts" />
+                <NavItem href="/discrepancies" icon={<Coins className="h-5 w-5" />} label="Overs & Shorts" />
                 <NavItem href="/transactions" icon={<History className="h-5 w-5" />} label="Transaction History" />
                 <NavItem href="/reports" icon={<BarChart3 className="h-5 w-5" />} label="Reports" />
                 <NavItem href="/end-of-day" icon={<CalendarClock className="h-5 w-5" />} label="End of Day" />

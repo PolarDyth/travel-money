@@ -6,6 +6,16 @@ generator client {
   output = "../generated/prisma"
 }
 
+model Discrepancy {
+  id             String   @id @default(uuid())
+  currency       String
+  date           DateTime
+  expectedAmount Decimal  @db.Decimal
+  actualAmount   Decimal  @db.Decimal
+  difference     Decimal  @db.Decimal
+  notes          String?
+}
+
 datasource db {
   provider = "postgres"
   url      = env("DATABASE_URL")
