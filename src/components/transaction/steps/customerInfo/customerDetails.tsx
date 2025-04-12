@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-inpux";
+import AddressCommandBox from "@/components/ui/addressCommandBox";
 
 export default function CustomerDetails() {
   const { register, control } = useFormContext<TransactionSchema>();
@@ -50,6 +51,19 @@ export default function CustomerDetails() {
       />
       <FormField
         control={control}
+        {...register("customerInfo.customerAddressLine1")}
+        name="customerInfo.customerAddressLine1"
+        render={() => (
+          <FormItem>
+            <FormLabel>Address Line 1 *</FormLabel>
+            <FormControl>
+              <AddressCommandBox />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
         {...register("customerInfo.customerPostcode")}
         name="customerInfo.customerPostcode"
         render={({ field }) => (
@@ -67,14 +81,27 @@ export default function CustomerDetails() {
       />
       <FormField
         control={control}
-        {...register("customerInfo.customerAddressLine1")}
-        name="customerInfo.customerAddressLine1"
+        {...register("customerInfo.customerCity")}
+        name="customerInfo.customerCity"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Address Line 1 *</FormLabel>
+            <FormLabel>City *</FormLabel>
+            <FormControl>
+              <Input placeholder="Customer City" className="input" {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        {...register("customerInfo.customerCountry")}
+        name="customerInfo.customerCountry"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Country *</FormLabel>
             <FormControl>
               <Input
-                placeholder="Customer Address Line 1"
+                placeholder="Customer Country"
                 className="input"
                 {...field}
               />
@@ -82,6 +109,7 @@ export default function CustomerDetails() {
           </FormItem>
         )}
       />
+
       <FormField
         control={control}
         {...register("customerInfo.customerEmail")}
@@ -108,13 +136,13 @@ export default function CustomerDetails() {
             <FormLabel>Phone</FormLabel>
             <FormControl>
               <div className="h-fit">
-              <PhoneInput
-                placeholder="Customer Phone"
-                className="input"
-                defaultCountry="GB"
-                {...field}
+                <PhoneInput
+                  placeholder="Customer Phone"
+                  className="input"
+                  defaultCountry="GB"
+                  {...field}
                 />
-                </div>
+              </div>
             </FormControl>
           </FormItem>
         )}

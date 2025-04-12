@@ -52,10 +52,14 @@ export const currencyDetailsSchema = z.object({
 // Customer information schema
 export const customerInfoSchema = z.object({
   // Customer Info
-  customerFirstName: z.string().min(1),
-  customerLastName: z.string().min(1),
-  customerPostcode: z.string().min(1),
-  customerAddressLine1: z.string().min(1),
+  customerFirstName: z.string().nonempty(),
+  customerLastName: z.string().nonempty(),
+
+  customerAddressLine1: z.string().nonempty(),
+  customerPostcode: z.string().nonempty(),
+  customerCity: z.string().nonempty(),
+  customerCountry: z.string().nonempty(),
+
   customerEmail: z.string().email().optional(),
   customerPhone: z.string().refine(isValidPhoneNumber).optional(),
 
@@ -91,25 +95,22 @@ export const transactionSchema = z
 
     if (amount >= 5000) {
       if (!data.customerInfo.secondaryId) {
-        console.log("Secondary ID is required.");
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Secondary ID is required for transactions >= £5000.",
           path: ["customerInfo", "secondaryId"],
         });
-      } else {
-        console.log("Secondary ID is provided.");
-        if (
-          data.customerInfo.primaryId &&
-          data.customerInfo.primaryId.type ===
-            data.customerInfo.secondaryId.secondaryType
-        ) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Primary and secondary ID must be different types.",
-            path: ["customerInfo", "secondaryId", "secondaryType"],
-          });
-        }
+      }
+      if (
+        data.customerInfo.primaryId &&
+        data.customerInfo.primaryId.type ===
+          data.customerInfo.secondaryId?.secondaryType
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Primary and secondary ID must be different types.",
+          path: ["customerInfo", "secondaryId", "secondaryType"],
+        });
       }
     }
   });
@@ -147,6 +148,9 @@ export const defaultTransaction: TransactionSchema = {
     customerLastName: "",
     customerPostcode: "",
     customerAddressLine1: "",
+    customerCity: "",
+    customerCountry: "",
+    customerFullAddress: "",
     customerEmail: undefined,
     customerPhone: undefined,
     primaryId: undefined,

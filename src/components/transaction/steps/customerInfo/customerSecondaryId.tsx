@@ -148,7 +148,30 @@ export default function CustomerSecondaryId() {
               </FormItem>
             )}
           />
-          
+          <FormField
+          control={control}
+          {...register("customerInfo.secondaryId.proofOfUse")}
+          name="customerInfo.secondaryId.proofOfUse"
+          render={({ field
+            }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked)}
+                      id="proofOfUse"
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="proofOfUse" className="text-sm">
+                      I have received proof of use from the customer and
+                      photocopied it.
+                    </Label>
+                  </div>
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
       </div>
     </>
