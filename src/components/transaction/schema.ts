@@ -71,8 +71,10 @@ export const customerInfoSchema = z.object({
 
 // Verification schema
 export const denominationSchema = z.record(
-  z.string().regex(/^\d+$/, "Must be a number string"),
-  z.number().int().positive()
+  z.string().refine((val) => /^\d+$/.test(val), {
+    message: "Denomination must be a number string",
+  }),
+  z.number().int()
 );
 // Main transaction schema - combining all schemas
 export const transactionSchema = z
@@ -113,6 +115,8 @@ export const transactionSchema = z
         });
       }
     }
+
+    if (!(amount === ))
   });
 
 export type TransactionSchema = z.infer<typeof transactionSchema>;
@@ -150,8 +154,8 @@ export const defaultTransaction: TransactionSchema = {
     customerAddressLine1: "",
     customerCity: "",
     customerCountry: "",
-    customerEmail: undefined,
-    customerPhone: undefined,
+    customerEmail: "",
+    customerPhone: "",
     primaryId: undefined,
     secondaryId: undefined,
     sterlingAmount: 0,

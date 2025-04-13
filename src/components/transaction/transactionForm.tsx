@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import TransactionTypeForm from "./steps/transactionType";
 import CurrencyDetailsForm from "./steps/currencyDetails";
 import CustomerInfo from "./steps/customerInfo";
+import DenomBreakdown from "./steps/denomBreakdown";
 
 const steps = [
   {
@@ -151,6 +152,7 @@ export default function Transaction() {
             {currentStep === 1 && <CurrencyDetailsForm />}
 
             {currentStep === 2 && <CustomerInfo />}
+            {currentStep === 3 && <DenomBreakdown />}
             <div className="flex items-center justify-between my-6">
               <Button
                 variant="outline"
