@@ -32,8 +32,8 @@ export const enhancedIdSchema = z.object({
   secondaryNumber: z.string().min(1, { message: "ID number is required" }), // Add min length message
   secondaryIssueDate: z.coerce.date().optional(),
   secondaryExpiryDate: z.coerce.date().optional(),
-  proofOfFunds: z.boolean(),
-  proofOfUse: z.boolean(),
+  proofOfFunds: z.literal(true),
+  proofOfUse: z.literal(true),
 });
 
 export const transactionTypeSchema = z.enum(["SELL", "BUY"]);
@@ -76,6 +76,16 @@ export const denominationSchema = z.record(
   }),
   z.number().int()
 );
+
+const verificationSchema = z.object({
+  countedTwice: z.literal(true),
+  countedToCustomer: z.literal(true),
+  confirmedSterling: z.literal(true),
+  confirmedCurrency: z.literal(true),
+  confirmedExchangeRate: z.literal(true),
+  confirmedForeign: z.literal(true),
+})
+
 // Main transaction schema - combining all schemas
 export const transactionSchema = z
   .object({
@@ -83,9 +93,11 @@ export const transactionSchema = z
     currencyDetails: currencyDetailsSchema,
     customerInfo: customerInfoSchema,
     denomination: denominationSchema,
+    verification: verificationSchema,
   })
   .superRefine((data, ctx) => {
     const amount = data.currencyDetails.sterlingAmount;
+    const foreignAmount = data.currencyDetails.foreignAmount;
 
     if (amount >= 500 && !data.customerInfo.primaryId) {
       ctx.addIssue({
@@ -115,8 +127,18 @@ export const transactionSchema = z
         });
       }
     }
-
-    if (!(amount === ))
+    const sumOfDenom = Object.entries(data.denomination).reduce((sum, [Key, quantity]) => {
+      const denominationValue = parseInt(Key, 10);
+      return sum + denominationValue * quantity;
+    }, 0);
+    console.log("Sum of products", sumOfDenom, amount)
+    if (!(foreignAmount === sumOfDenom)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Denomination does not match the sterling amount.",
+        path: ["denomination"],
+      });
+    }
   });
 
 export type TransactionSchema = z.infer<typeof transactionSchema>;
@@ -132,6 +154,8 @@ export function getSchemaSteps(step: number): keyof TransactionSchema {
       return "customerInfo";
     case 3:
       return "denomination";
+    case 4:
+      return "verification";
     default:
       throw new Error("Invalid step number");
   }
@@ -163,4 +187,12 @@ export const defaultTransaction: TransactionSchema = {
   denomination: {
     "0": 0,
   },
+  verification: {
+    countedTwice: false,
+    countedToCustomer: false,
+    confirmedSterling: false,
+    confirmedCurrency: false,
+    confirmedExchangeRate: false,
+    confirmedForeign: false,
+  }
 };

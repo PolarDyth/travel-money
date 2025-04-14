@@ -1,3 +1,5 @@
+"use client";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,13 +16,17 @@ import { TransactionSchema } from "../schema";
 import { currencies, Currency } from "@/data/currencies";
 import { calculateDenomThreshold } from "@/lib/utils";
 import { FormControl } from "@/components/ui/form";
+import { useEffect, useState } from "react";
 
 export default function DenomBreakdown() {
-  const { watch, control, register, formState } = useFormContext<TransactionSchema>();
+  const { watch, register } = useFormContext<TransactionSchema>();
+
+  const [denomValue, setDenomValue] = useState(0);
 
   const currency = watch("currencyDetails.currencyCode");
   const foreignAmount = watch("currencyDetails.foreignAmount");
   const transactionType = watch("transactionType");
+  const watchedDenoms = watch("denomination");
 
   const selectedCurrency: Currency =
     currencies.find((c) => c.code === currency) ?? currencies[0];
@@ -52,10 +58,8 @@ export default function DenomBreakdown() {
       // if we go through the loop and can't give anything, break to avoid infinite loop
       if (!gaveSomething) break;
     }
-    console.log(denoms)
     for (const denom of denoms) {
       if (!(denom in result)) {
-        console.log("Worked")
         result[denom] = 0;
       }
     }
@@ -68,14 +72,17 @@ export default function DenomBreakdown() {
 
   const split = getEvenlySplitDenominations(foreignAmount, selectedCurrency.denominations);
 
-  const watchedDenoms = watch("denomination");
+  useEffect(() => {
+    console.log("changed")
 
-  const total = Object.entries(watchedDenoms ?? {}).reduce(
-    (sum, [key, value]) => {
-      return sum + Number(key) * Number(value);
-    },
-    0
-  );
+    const total = Object.entries(watchedDenoms ?? {}).reduce(
+      (sum, [key, value]) => {
+        return sum + Number(key) * Number(value);
+      },
+      0
+    );
+    setDenomValue(total);
+  }, [watchedDenoms]);
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
@@ -105,10 +112,6 @@ export default function DenomBreakdown() {
 
               <div className="space-y-4">
                 {selectedCurrency.denominations.map((denom) => {
-                  const count = split[denom] || 0;
-
-                  // Skip denominations with zero count for cleaner UI
-                  if (transactionType === "SELL" && count === 0) return null;
 
                   return (
                     <div
@@ -136,7 +139,7 @@ export default function DenomBreakdown() {
                       <div className="text-right font-medium">
                         {selectedCurrency.symbol}
                         {/* Watch the live value if you want, or recalculate based on RHF watch */}
-                        {(split[denom] * denom).toFixed(2) ?? 0}
+                        {(watchedDenoms[denom] * denom).toFixed(2) ?? 0}
                       </div>
                     </div>
                   );
@@ -148,12 +151,12 @@ export default function DenomBreakdown() {
               <span className="font-medium">Total from denominations:</span>
               <span className="font-bold">
                 {selectedCurrency.symbol}
-                {total}
+                {denomValue}
               </span>
             </div>
 
             {/* Show warning if denomination total doesn't match foreign amount */}
-            {Math.abs(total - foreignAmount) > 0.01 && (
+            {Math.abs(denomValue - foreignAmount) > 0.01 && (
               <Alert variant="destructive">
                 <Info className="h-4 w-4" />
                 <AlertTitle>Denomination mismatch</AlertTitle>
