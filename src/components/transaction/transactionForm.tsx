@@ -14,17 +14,11 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { redirect } from "next/navigation";
-import TransactionTypeForm from "./steps/transactionType";
 import CurrencyDetailsForm from "./steps/currencyDetails";
 import CustomerInfo from "./steps/customerInfo";
 import DenomBreakdown from "./steps/denomBreakdown";
 
 const steps = [
-  {
-    id: "transaction-type",
-    name: "Transaction Type",
-    description: "Select the type of transaction",
-  },
   {
     id: "currency-details",
     name: "Currency Details",
@@ -75,7 +69,6 @@ export default function Transaction() {
     console.log("Form submitted successfully:", data);
   });
 
-  const selectedTransactionType = methods.watch("transactionType") || "SELL";
 
   return (
     <main className="flex h-screen flex-col w-full max-w-6/7 mx-auto px-4">
@@ -90,9 +83,7 @@ export default function Transaction() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-2xl font-bold">
-            {selectedTransactionType == "SELL"
-              ? "Sell Foreign Currency"
-              : "Buy Foreign Currency"}
+            New Transaction
           </h1>
         </div>
         <div>
@@ -145,14 +136,11 @@ export default function Transaction() {
       <div className="my-8">
         <FormProvider {...methods}>
           <form onSubmit={onSubmit}>
-            {currentStep === 0 && (
-              <TransactionTypeForm transactionType={selectedTransactionType} />
-            )}
 
-            {currentStep === 1 && <CurrencyDetailsForm />}
+            {currentStep === 0 && <CurrencyDetailsForm />}
 
-            {currentStep === 2 && <CustomerInfo />}
-            {currentStep === 3 && <DenomBreakdown />}
+            {currentStep === 1 && <CustomerInfo />}
+            {currentStep === 2 && <DenomBreakdown />}
             <div className="flex items-center justify-between my-6">
               <Button
                 variant="outline"

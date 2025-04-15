@@ -4,6 +4,7 @@ import {
   sourceType,
   useOfFundsType,
 } from "@/constants/Identification";
+import { currencies } from "@/data/currencies";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
 
@@ -36,22 +37,21 @@ export const enhancedIdSchema = z.object({
   proofOfUse: z.literal(true),
 });
 
-const currencyDetailsSchema = z.array(
+export const currencyDetailsSchema =
   z.object({
+    id: z.string().uuid(),
     transactionType: z.enum(["SELL", "BUY"]),
     currencyCode: z.string().length(3).toUpperCase(),
     sterlingAmount: z.coerce.number().positive(),
     foreignAmount: z.coerce.number().positive(),
     exchangeRate: z.coerce.number().positive(),
-  
-    paymentMethod: z.enum(["CASH", "CARD"]),
     // Operator
     operatorId: z.number().int().optional(),
   })
-)
 
 export const allCurrencyDetailsSchema = z.object({
-  currencyDetails: currencyDetailsSchema,
+  activeCurrency: currencyDetailsSchema.optional(),
+  currencyDetails: z.array(currencyDetailsSchema),
   totalSterling: z.coerce.number().refine((value) => value != 0),
 }).superRefine((data) => {
   data.totalSterling = data.currencyDetails.reduce(
@@ -189,8 +189,21 @@ export function getSchemaSteps(step: number): keyof TransactionSchema {
   }
 }
 
+const defaultCurrency = currencies[0]
+
 export const defaultTransaction: TransactionSchema = {
-  currencyDetails: [],
+  allCurrencyDetails: {
+    activeCurrency: {
+      id: crypto.randomUUID(),
+      transactionType: "SELL",
+      currencyCode: defaultCurrency.code,
+      foreignAmount: 0,
+      sterlingAmount: 0,
+      exchangeRate: defaultCurrency.sell,
+    },
+    currencyDetails: [],
+    totalSterling: 0,
+  },
   customerInfo: {
     customerFirstName: "",
     customerLastName: "",
@@ -210,11 +223,11 @@ export const defaultTransaction: TransactionSchema = {
     }
   },
   verification: {
-    countedTwice: false,
-    countedToCustomer: false,
-    confirmedSterling: false,
-    confirmedCurrency: false,
-    confirmedExchangeRate: false,
-    confirmedForeign: false,
+    countedTwice: false as unknown as true,
+    countedToCustomer: false as unknown as true,
+    confirmedSterling: false as unknown as true,
+    confirmedCurrency: false as unknown as true,
+    confirmedExchangeRate: false as unknown as true,
+    confirmedForeign: false as unknown as true,
   }
 };
