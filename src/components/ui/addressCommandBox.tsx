@@ -67,7 +67,6 @@ export default function AddressCommandBox() {
                 {...field}
                 value={field.value}
                 onValueChange={(value) => {
-                  setQuery(value);
                   setIsOpen(true);
                   field.onChange(value);
                 }}
