@@ -4,9 +4,9 @@ import {
   sourceType,
   useOfFundsType,
 } from "@/constants/Identification";
-import { currencies } from "@/data/currencies";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
+
 
 // ID validation schema
 export const standardIdSchema = z.object({
@@ -50,8 +50,7 @@ export const currencyDetailsSchema =
   })
 
 export const allCurrencyDetailsSchema = z.object({
-  activeCurrency: currencyDetailsSchema.optional(),
-  currencyDetails: z.array(currencyDetailsSchema),
+  currencyDetails: z.array(currencyDetailsSchema).min(1, "At least one currency detail is required"),
   totalSterling: z.coerce.number().refine((value) => value != 0),
 }).superRefine((data) => {
   data.totalSterling = data.currencyDetails.reduce(
@@ -82,14 +81,12 @@ export const customerInfoSchema = z.object({
 });
 
 // Verification schema
-export const denominationSchema = z.record(
-  z.string(), // currency code
+export const denominationSchema = 
   z.record(
     z.string().refine((val) => /^\d+$/.test(val), {
       message: "Denomination must be a number string",
     }),
     z.number().int()
-  )
 );
 
 const verificationSchema = z.object({
@@ -106,7 +103,7 @@ export const transactionSchema = z
   .object({
     allCurrencyDetails: allCurrencyDetailsSchema,
     customerInfo: customerInfoSchema,
-    denomination: denominationSchema,
+    denomination: z.array(denominationSchema),
     verification: verificationSchema,
   })
   .superRefine((data, ctx) => {
@@ -141,10 +138,10 @@ export const transactionSchema = z
       }
     }
 
-    data.allCurrencyDetails.currencyDetails.forEach((currency) => {
+    data.allCurrencyDetails.currencyDetails.forEach((currency, indx) => {
       const code = currency.currencyCode;
       const foreignAmount = currency.foreignAmount;
-      const denomBreakdown = data.denomination[code];
+      const denomBreakdown = data.denomination[indx][code];
 
       if (!denomBreakdown) {
         ctx.addIssue({
@@ -170,7 +167,6 @@ export const transactionSchema = z
       }
     });
   });
-
 export type TransactionSchema = z.infer<typeof transactionSchema>;
 
 // Step schemas for multi-step form
@@ -189,18 +185,8 @@ export function getSchemaSteps(step: number): keyof TransactionSchema {
   }
 }
 
-const defaultCurrency = currencies[0]
-
 export const defaultTransaction: TransactionSchema = {
   allCurrencyDetails: {
-    activeCurrency: {
-      id: crypto.randomUUID(),
-      transactionType: "SELL",
-      currencyCode: defaultCurrency.code,
-      foreignAmount: 0,
-      sterlingAmount: 0,
-      exchangeRate: defaultCurrency.sell,
-    },
     currencyDetails: [],
     totalSterling: 0,
   },
@@ -217,11 +203,7 @@ export const defaultTransaction: TransactionSchema = {
     secondaryId: undefined,
     sterlingAmount: 0,
   },
-  denomination: {
-    "": {
-      "": 0,
-    }
-  },
+  denomination: [],
   verification: {
     countedTwice: false as unknown as true,
     countedToCustomer: false as unknown as true,

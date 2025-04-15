@@ -52,6 +52,7 @@ export default function Transaction() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const methods = useForm<TransactionSchema>({
+    mode: "onTouched",
     resolver: zodResolver(transactionSchema),
     defaultValues: defaultTransaction,
   });

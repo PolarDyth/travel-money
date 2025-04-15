@@ -1,5 +1,5 @@
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { TransactionSchema } from "../schema";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { currencyDetailsSchema, TransactionSchema } from "../schema";
 import {
   Card,
   CardContent,
@@ -32,32 +32,47 @@ import { roundUpToNearest } from "@/lib/utils";
 import { currencies, Currency } from "@/data/currencies";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UUID } from "crypto";
+import { UUIDTypes, v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+
+const defaultSchemaValues = {
+  id: "",
+  transactionType: "SELL" as "SELL" | "BUY",
+  currencyCode: currencies[0].code,
+  sterlingAmount: 0,
+  foreignAmount: 0,
+  exchangeRate: currencies[0].sell,
+};
 
 export default function CurrencyDetailsForm() {
-  const { setValue, watch, control, register } = useFormContext<TransactionSchema>();
+  const { setValue, watch, control } = useFormContext<TransactionSchema>();
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "allCurrencyDetails.currencyDetails",
-  });  
+  });
 
   const [transactionLevel, setTransactionLevel] = useState("LOW");
-  const [activeCurrency, setActiveCurrency] = useState<Currency>(
-    currencies[0]
-  );
+  const [activeCurrency, setActiveCurrency] = useState<Currency>(currencies[0]);
+
+  type activeSchema = z.infer<typeof currencyDetailsSchema>;
+
+  const activeForm = useForm<activeSchema>({
+    defaultValues: defaultSchemaValues,
+  });
 
   // Watch the array of currency items
   const watchedCurrencyDetails = watch("allCurrencyDetails.currencyDetails");
-  const currentTransactionType = watch("allCurrencyDetails.activeCurrency.transactionType");
-  const sterlingValue = watch("allCurrencyDetails.activeCurrency.sterlingAmount");
-  const foreignValue = watch("allCurrencyDetails.activeCurrency.foreignAmount");
+  const currentTransactionType = activeForm.watch("transactionType");
+  const sterlingValue = activeForm.watch("sterlingAmount");
+  const foreignValue = activeForm.watch("foreignAmount");
   // Calculate total sterling
   useEffect(() => {
     const totalSterling = watchedCurrencyDetails.reduce(
       (sum, item) => sum + (item.sterlingAmount || 0),
       0
     );
+    console.log("Total Sterling:", totalSterling);
     setValue("allCurrencyDetails.totalSterling", totalSterling);
     if (totalSterling >= 500) {
       setTransactionLevel("MEDIUM");
@@ -71,17 +86,17 @@ export default function CurrencyDetailsForm() {
   // Handler to add a new item
   const addToTransaction = () => {
     console.log("add to transaction", fields);
-    const current = watch("allCurrencyDetails.activeCurrency");
-    console.log("current", current);
-    if (current) {
-      append(current);
+    activeForm.setValue("id", uuidv4());
+    const current = currencyDetailsSchema.safeParse(activeForm.getValues());
+    if (current.success) {
+      append({ ...current.data, id: uuidv4() });
     }
 
-    setValue("allCurrencyDetails.activeCurrency", undefined);
+    activeForm.reset();
   };
 
   // Handler to remove an item
-  const removeItem = (id: UUID) => {
+  const removeItem = (id: UUIDTypes) => {
     const index = fields.findIndex((item) => item.id === id);
     if (index !== -1) {
       remove(index);
@@ -100,11 +115,9 @@ export default function CurrencyDetailsForm() {
   const handleSterlingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === "") return;
-    const currency = currencies.find(
-      (c) => c.code === activeCurrency?.code
-    );
+    const currency = currencies.find((c) => c.code === activeCurrency?.code);
 
-    console.log(currency)
+    console.log(currency);
     const sterlingAmount = parseFloat(value);
     if (isNaN(sterlingAmount) || !currency) return;
 
@@ -118,8 +131,8 @@ export default function CurrencyDetailsForm() {
 
     // Recalculate sterling amount to match rounded foreign
     const newSterlingAmount = parseFloat((foreignAmount / rate).toFixed(2));
-    setValue("allCurrencyDetails.activeCurrency.sterlingAmount", newSterlingAmount);
-    setValue("allCurrencyDetails.activeCurrency.foreignAmount", foreignAmount);
+    activeForm.setValue("sterlingAmount", newSterlingAmount);
+    activeForm.setValue("foreignAmount", foreignAmount);
   };
 
   // Handle foreign amount changes
@@ -127,9 +140,7 @@ export default function CurrencyDetailsForm() {
     const value = e.target.value;
     if (value === "") return;
 
-    const currency = currencies.find(
-      (c) => c.code === activeCurrency?.code
-    );
+    const currency = currencies.find((c) => c.code === activeCurrency?.code);
 
     let foreignAmount = parseFloat(value);
     if (isNaN(foreignAmount) || !currency) return;
@@ -144,8 +155,8 @@ export default function CurrencyDetailsForm() {
     // Calculate sterling amount
     const sterlingAmount = parseFloat((foreignAmount / rate).toFixed(2));
 
-    setValue("allCurrencyDetails.activeCurrency.sterlingAmount", sterlingAmount);
-    setValue("allCurrencyDetails.activeCurrency.foreignAmount", foreignAmount);
+    activeForm.setValue("sterlingAmount", sterlingAmount);
+    activeForm.setValue("foreignAmount", foreignAmount);
   };
 
   return (
@@ -161,8 +172,8 @@ export default function CurrencyDetailsForm() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <FormField
-                {...register("allCurrencyDetails.activeCurrency.transactionType")}
-                control={control}               
+                {...activeForm.register("transactionType")}
+                control={activeForm.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Transaction Type</FormLabel>
@@ -190,8 +201,8 @@ export default function CurrencyDetailsForm() {
 
             <div>
               <FormField
-                {...register("allCurrencyDetails.activeCurrency.currencyCode")}
-                control={control}
+                {...activeForm.register("currencyCode")}
+                control={activeForm.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Select Currency</FormLabel>
@@ -199,24 +210,27 @@ export default function CurrencyDetailsForm() {
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
-                        setActiveCurrency(currencies.find((c) => c.code === value) || currencies[0]);
-                        setValue("allCurrencyDetails.activeCurrency.currencyCode", value);
+                        setActiveCurrency(
+                          currencies.find((c) => c.code === value) ||
+                            currencies[0]
+                        );
+                        activeForm.setValue("currencyCode", value);
 
-                        setValue("allCurrencyDetails.activeCurrency.foreignAmount", 0);
-                        setValue("allCurrencyDetails.activeCurrency.sterlingAmount", 0);
+                        activeForm.setValue("foreignAmount", 0);
+                        activeForm.setValue("sterlingAmount", 0);
 
-                        console.log("Ran here")
+                        console.log("Ran here");
                         if (activeCurrency) {
-                          console.log("Ran")
-                          setValue(
-                            "allCurrencyDetails.activeCurrency.exchangeRate",
-                            calculateExchangeRate(activeCurrency, currentTransactionType)
+                          console.log("Ran");
+                          activeForm.setValue(
+                            "exchangeRate",
+                            calculateExchangeRate(
+                              activeCurrency,
+                              currentTransactionType
+                            )
                           );
                         } else {
-                          setValue(
-                            "allCurrencyDetails.activeCurrency.exchangeRate",
-                            0
-                          );
+                          activeForm.setValue("exchangeRate", 0);
                         }
                       }}
                     >
@@ -264,8 +278,8 @@ export default function CurrencyDetailsForm() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <FormField
-                {...register("allCurrencyDetails.activeCurrency.sterlingAmount")}
-                control={control}
+                {...activeForm.register("sterlingAmount")}
+                control={activeForm.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Amount in Sterling</FormLabel>
@@ -297,17 +311,16 @@ export default function CurrencyDetailsForm() {
             </div>
 
             <FormField
-              {...register("allCurrencyDetails.activeCurrency.foreignAmount")}
-              control={control}
+              {...activeForm.register("foreignAmount")}
+              control={activeForm.control}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Amount in {activeCurrency?.code}</FormLabel>
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 self-center text-muted-foreground">
                       {
-                        currencies.find(
-                          (c) => c.code === activeCurrency?.code
-                        )?.symbol
+                        currencies.find((c) => c.code === activeCurrency?.code)
+                          ?.symbol
                       }
                     </div>
                     <Input
@@ -334,9 +347,7 @@ export default function CurrencyDetailsForm() {
 
           <Button
             onClick={addToTransaction}
-            disabled={
-              sterlingValue <= 0 || foreignValue <= 0
-            }
+            disabled={sterlingValue <= 0 || foreignValue <= 0}
             className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -388,7 +399,7 @@ export default function CurrencyDetailsForm() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeItem(item.id as UUID)}
+                        onClick={() => removeItem(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -422,17 +433,17 @@ export default function CurrencyDetailsForm() {
               <Alert
                 className={`
                         ${
-                          transactionLevel === "low"
+                          transactionLevel === "LOW"
                             ? "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300"
                             : ""
                         }
                         ${
-                          transactionLevel === "medium"
+                          transactionLevel === "MEDIUM"
                             ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300"
                             : ""
                         }
                         ${
-                          transactionLevel === "high"
+                          transactionLevel === "HIGH"
                             ? "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-300"
                             : ""
                         }
@@ -441,9 +452,9 @@ export default function CurrencyDetailsForm() {
                 <Info className="h-4 w-4" />
                 <AlertTitle>
                   Transaction Level:{" "}
-                  {transactionLevel === "low"
+                  {transactionLevel === "LOW"
                     ? "Low"
-                    : transactionLevel === "medium"
+                    : transactionLevel === "MEDIUM"
                     ? "Medium"
                     : "High"}
                 </AlertTitle>
