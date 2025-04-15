@@ -17,7 +17,7 @@ A modern web application to manage multi-currency transactions, tailored for for
 
 ## 🛠️ Tech Stack
 
-- **React + Vite** – Blazing-fast development
+- **NextJS** – Blazing-fast development
 - **TypeScript** – Type-safe and scalable
 - **React Hook Form** – Flexible and performant form management
 - **Zod** – Runtime schema validation
