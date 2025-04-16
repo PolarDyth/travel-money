@@ -11,13 +11,18 @@ import CustomerDetails from "./customerInfo/customerDetails";
 import { SelectSeparator } from "@/components/ui/select";
 import CustomerPrimaryId from "./customerInfo/customerPrimaryId";
 import CustomerSecondaryId from "./customerInfo/customerSecondaryId";
+import { useEffect } from "react";
 
 export default function CustomerInfo() {
   const { watch, setValue } =
     useFormContext<TransactionSchema>();
 
   const transactionValue = watch("allCurrencyDetails.totalSterling");
-  setValue("customerInfo.sterlingAmount", transactionValue);
+  
+  useEffect(() => {
+    setValue("customerInfo.sterlingAmount", transactionValue);
+  }, [transactionValue, setValue]);
+
 
   return (
     <>

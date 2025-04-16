@@ -87,7 +87,6 @@ export default function CurrencyDetailsForm() {
 
   // Handler to add a new item
   const addToTransaction = () => {
-    console.log("add to transaction", fields);
     activeForm.setValue("id", uuidv4());
     const current = currencyDetailsSchema.safeParse(activeForm.getValues());
     if (current.success) {
@@ -159,7 +158,6 @@ export default function CurrencyDetailsForm() {
 
     // Calculate sterling amount
     const sterlingAmount = parseFloat((foreignAmount / rate).toFixed(2));
-    console.log("sterlingAmount", sterlingAmount);
     activeForm.setValue("sterlingAmount", sterlingAmount);
     activeForm.setValue("foreignAmount", foreignAmount);
   };
