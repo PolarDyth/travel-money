@@ -16,7 +16,7 @@ export default function CustomerInfo() {
   const { watch, setValue } =
     useFormContext<TransactionSchema>();
 
-  const transactionValue = watch("currencyDetails.sterlingAmount");
+  const transactionValue = watch("allCurrencyDetails.totalSterling");
   setValue("customerInfo.sterlingAmount", transactionValue);
 
   return (
