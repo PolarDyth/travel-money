@@ -1,3 +1,4 @@
+
 import {
   primaryIdType,
   secondaryIdType,
@@ -38,8 +39,8 @@ export const enhancedIdSchema = z.object({
   proofOfUse: z.literal(true),
 });
 
-export const currencyDetailsSchema =
-  z.object({
+export const currencyDetailsSchema = z
+  .object({
     id: z.string().uuid(),
     transactionType: z.enum(["SELL", "BUY"]),
     currencyCode: z.string().length(3).toUpperCase(),
@@ -48,39 +49,45 @@ export const currencyDetailsSchema =
     exchangeRate: z.coerce.number().positive(),
     // Operator
     operatorId: z.number().int().optional(),
-  }).refine((data) => {
-    const currency = currencies.find((c) => c.code === data.currencyCode);
-    if (!currency) return false;
-  
-    // Use the same calculation as your handleSterlingChange/handleForeignChange
-    let expectedSterling: number;
-    if (data.transactionType === "SELL") {
-      // SELL: foreignAmount / rate, rounded up to nearest denomination
-      const foreignDiv = data.foreignAmount / data.exchangeRate;
-      expectedSterling = foreignDiv;
-    } else {
-      // BUY: foreignAmount / -abs(rate), rounded up to nearest denomination
-      const foreignDiv = data.foreignAmount / -Math.abs(data.exchangeRate);
-      expectedSterling = foreignDiv;
-    }
-    console.log("Expected Sterling:", expectedSterling);
-    console.log("Actual Sterling:", data.sterlingAmount);
-    // Use a small tolerance for floating point comparison
-    return Math.abs(data.sterlingAmount - expectedSterling) < 0.01;
-  }, {
-    message: "Sterling amount does not match the calculated value based on foreign amount and exchange rate.",
   })
+  .refine(
+    (data) => {
+      const currency = currencies.find((c) => c.code === data.currencyCode);
+      if (!currency) return false;
 
-export const allCurrencyDetailsSchema = z.object({
-  currencyDetails: z.array(currencyDetailsSchema).min(1, "At least one currency detail is required"),
-  totalSterling: z.coerce.number().refine((value) => value != 0),
-}).superRefine((data) => {
-  data.totalSterling = data.currencyDetails.reduce(
-    (sum, currency) => sum + currency.sterlingAmount,
-    0
+      // Use the same calculation as your handleSterlingChange/handleForeignChange
+      let expectedSterling: number;
+      if (data.transactionType === "SELL") {
+        // SELL: foreignAmount / rate, rounded up to nearest denomination
+        const foreignDiv = data.foreignAmount / data.exchangeRate;
+        expectedSterling = foreignDiv;
+      } else {
+        // BUY: foreignAmount / -abs(rate), rounded up to nearest denomination
+        const foreignDiv = data.foreignAmount / -Math.abs(data.exchangeRate);
+        expectedSterling = foreignDiv;
+      }
+      // Use a small tolerance for floating point comparison
+      return Math.abs(data.sterlingAmount - expectedSterling) < 0.01;
+    },
+    {
+      message:
+        "Sterling amount does not match the calculated value based on foreign amount and exchange rate.",
+    }
   );
 
-});
+export const allCurrencyDetailsSchema = z
+  .object({
+    currencyDetails: z
+      .array(currencyDetailsSchema)
+      .min(1, "At least one currency detail is required"),
+    totalSterling: z.coerce.number().refine((value) => value != 0),
+  })
+  .superRefine((data) => {
+    data.totalSterling = data.currencyDetails.reduce(
+      (sum, currency) => sum + currency.sterlingAmount,
+      0
+    );
+  });
 
 // Customer information schema
 export const customerInfoSchema = z.object({
@@ -103,22 +110,36 @@ export const customerInfoSchema = z.object({
 });
 
 // Verification schema
-export const denominationSchema = 
-  z.record(
-    z.string().refine((val) => /^\d+$/.test(val), {
-      message: "Denomination must be a number string",
-    }),
-    z.number().int()
+export const denominationSchema = z.record(
+  z.string().refine((val) => /^\d+$/.test(val), {
+    message: "Denomination must be a number string",
+  }),
+  z.number().int()
 );
 
 const verificationSchema = z.object({
-  countedTwice: z.literal(true),
-  countedToCustomer: z.literal(true),
-  confirmedSterling: z.literal(true),
-  confirmedCurrency: z.literal(true),
-  confirmedExchangeRate: z.literal(true),
-  confirmedForeign: z.literal(true),
-})
+  countedTwice: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the cash has been counted twice.",
+  }),
+  countedToCustomer: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the cash has been counted to the customer.",
+  }),
+  confirmedSterling: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the sterling amount with the customer.",
+  }),
+  confirmedCurrency: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the currency with the customer.",
+  }),
+  confirmedExchangeRate: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the exchange rate with the customer.",
+  }),
+  confirmedForeign: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the foreign amount with the customer.",
+  }),
+
+  paymentMethod: z.record(z.enum(["CASH", "CARD"]), z.coerce.number()),
+  cashTendered: z.coerce.number().optional(),
+});
 
 // Main transaction schema - combining all schemas
 export const transactionSchema = z
@@ -163,7 +184,7 @@ export const transactionSchema = z
     data.allCurrencyDetails.currencyDetails.forEach((currency, indx) => {
       const code = currency.currencyCode;
       const foreignAmount = currency.foreignAmount;
-      const denomBreakdown = data.denomination[indx][code];
+      const denomBreakdown = data.denomination[indx];
 
       if (!denomBreakdown) {
         ctx.addIssue({
@@ -174,20 +195,40 @@ export const transactionSchema = z
         return;
       }
 
-      const sumOfDenom = Object.entries(denomBreakdown).reduce((sum, [key, quantity]) => {
-        const denominationValue = parseFloat(key);
-        return sum + denominationValue * quantity;
-      }, 0);
+      const sumOfDenom = Object.entries(denomBreakdown).reduce(
+        (sum, [key, quantity]) => {
+          const denominationValue = parseFloat(key);
+          return sum + denominationValue * quantity;
+        },
+        0
+      );
 
       // Use a small tolerance for floating point comparison
       if (Math.abs(sumOfDenom - foreignAmount) > 0.01) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Denomination total (${sumOfDenom.toFixed(2)}) does not match the foreign amount (${foreignAmount.toFixed(2)}) for ${code}.`,
+          message: `Denomination total (${sumOfDenom.toFixed(
+            2
+          )}) does not match the foreign amount (${foreignAmount.toFixed(
+            2
+          )}) for ${code}.`,
           path: ["denomination", code],
         });
       }
     });
+
+    const payment = data.verification.paymentMethod;
+    const cash = payment.CASH ?? 0;
+    const card = payment.CARD ?? 0;
+    if (Math.abs(cash + card - amount) > 0.01) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `The sum of cash and card payments (${(cash + card).toFixed(
+          2
+        )}) must equal the total sterling amount (${amount.toFixed(2)}).`,
+        path: ["verification", "paymentMethod"],
+      });
+    }
   });
 export type TransactionSchema = z.infer<typeof transactionSchema>;
 
@@ -227,11 +268,16 @@ export const defaultTransaction: TransactionSchema = {
   },
   denomination: [],
   verification: {
-    countedTwice: false as unknown as true,
-    countedToCustomer: false as unknown as true,
-    confirmedSterling: false as unknown as true,
-    confirmedCurrency: false as unknown as true,
-    confirmedExchangeRate: false as unknown as true,
-    confirmedForeign: false as unknown as true,
-  }
+    countedTwice: false,
+    countedToCustomer: false,
+    confirmedSterling: false,
+    confirmedCurrency: false,
+    confirmedExchangeRate: false,
+    confirmedForeign: false,
+    paymentMethod: {
+      CASH: 0,
+      CARD: 0,
+    },
+    cashTendered: 0,
+  },
 };
