@@ -55,7 +55,7 @@ export default function DenomBreakdown() {
 
     while (remaining > 0) {
       const availableDenoms = sorted.filter(
-        (denom) => amount >= (thresholds[denom] ?? 0)
+        (denom) => remaining >= (thresholds[denom] ?? 0)
       );
       let gaveSomething = false;
 
