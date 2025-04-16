@@ -66,8 +66,6 @@ export const currencyDetailsSchema = z
         const foreignDiv = data.foreignAmount / -Math.abs(data.exchangeRate);
         expectedSterling = foreignDiv;
       }
-      console.log("Expected Sterling:", expectedSterling);
-      console.log("Actual Sterling:", data.sterlingAmount);
       // Use a small tolerance for floating point comparison
       return Math.abs(data.sterlingAmount - expectedSterling) < 0.01;
     },
@@ -120,15 +118,27 @@ export const denominationSchema = z.record(
 );
 
 const verificationSchema = z.object({
-  countedTwice: z.boolean().refine((val) => val === true),
-  countedToCustomer: z.boolean().refine((val) => val === true),
-  confirmedSterling: z.boolean().refine((val) => val === true),
-  confirmedCurrency: z.boolean().refine((val) => val === true),
-  confirmedExchangeRate: z.boolean().refine((val) => val === true),
-  confirmedForeign: z.boolean().refine((val) => val === true),
+  countedTwice: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the cash has been counted twice.",
+  }),
+  countedToCustomer: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the cash has been counted to the customer.",
+  }),
+  confirmedSterling: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the sterling amount with the customer.",
+  }),
+  confirmedCurrency: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the currency with the customer.",
+  }),
+  confirmedExchangeRate: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the exchange rate with the customer.",
+  }),
+  confirmedForeign: z.boolean().refine((val) => val === true, {
+    message: "You must confirm the foreign amount with the customer.",
+  }),
 
-  paymentMethod: z.record(z.enum(["CASH", "CARD"]), z.number().int()),
-  cashTendered: z.number().int().optional(),
+  paymentMethod: z.record(z.enum(["CASH", "CARD"]), z.coerce.number()),
+  cashTendered: z.coerce.number().optional(),
 });
 
 // Main transaction schema - combining all schemas
@@ -174,7 +184,7 @@ export const transactionSchema = z
     data.allCurrencyDetails.currencyDetails.forEach((currency, indx) => {
       const code = currency.currencyCode;
       const foreignAmount = currency.foreignAmount;
-      const denomBreakdown = data.denomination[indx][code];
+      const denomBreakdown = data.denomination[indx];
 
       if (!denomBreakdown) {
         ctx.addIssue({
@@ -210,7 +220,6 @@ export const transactionSchema = z
     const payment = data.verification.paymentMethod;
     const cash = payment.CASH ?? 0;
     const card = payment.CARD ?? 0;
-
     if (Math.abs(cash + card - amount) > 0.01) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -269,5 +278,6 @@ export const defaultTransaction: TransactionSchema = {
       CASH: 0,
       CARD: 0,
     },
+    cashTendered: 0,
   },
 };

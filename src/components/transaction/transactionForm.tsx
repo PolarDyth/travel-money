@@ -17,6 +17,8 @@ import { redirect } from "next/navigation";
 import CurrencyDetailsForm from "./steps/currencyDetails";
 import CustomerInfo from "./steps/customerInfo";
 import DenomBreakdown from "./steps/denomBreakdown";
+import Verification from "./steps/verification";
+import Confirmation from "./steps/confirmation";
 
 const steps = [
   {
@@ -58,9 +60,12 @@ export default function Transaction() {
   });
 
   const nextStep = async () => {
-    const valid = await methods.trigger(getSchemaSteps(currentStep));
-    if (valid) setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
-    else console.error("Validation failed for step:", methods.formState.errors);
+    if (currentStep < TOTAL_STEPS - 1) {
+      const valid = await methods.trigger(getSchemaSteps(currentStep));
+      if (valid) setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
+      else
+        console.error("Validation failed for step:", methods.formState.errors);
+    }
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
@@ -69,7 +74,6 @@ export default function Transaction() {
   const onSubmit = methods.handleSubmit((data: TransactionSchema) => {
     console.log("Form submitted successfully:", data);
   });
-
 
   return (
     <main className="flex h-screen flex-col w-full max-w-6/7 mx-auto px-4">
@@ -83,9 +87,7 @@ export default function Transaction() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold">
-            New Transaction
-          </h1>
+          <h1 className="text-2xl font-bold">New Transaction</h1>
         </div>
         <div>
           <Badge variant={"outline"}>Transaction #1</Badge>
@@ -137,14 +139,15 @@ export default function Transaction() {
       <div className="my-8">
         <FormProvider {...methods}>
           <form onSubmit={onSubmit}>
-
             {currentStep === 0 && <CurrencyDetailsForm />}
-
             {currentStep === 1 && <CustomerInfo />}
             {currentStep === 2 && <DenomBreakdown />}
+            {currentStep === 3 && <Verification />}
+            {currentStep === 4 && <Confirmation />}
             <div className="flex items-center justify-between my-6">
               <Button
                 variant="outline"
+                type="button"
                 onClick={prevStep}
                 disabled={currentStep === 0}
               >
@@ -152,7 +155,10 @@ export default function Transaction() {
                 Previous
               </Button>
               {currentStep < steps.length - 1 ? (
-                <Button type="button" onClick={nextStep}>
+                <Button type="button" onClick={(e) => {
+                  e.preventDefault();
+                  nextStep();
+                }}>
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
