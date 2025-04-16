@@ -204,6 +204,7 @@ export default function DenomBreakdown() {
                                   <Input
                                     type="number"
                                     min="0"
+                                    max={200}
                                     className="h-8 w-16"
                                     {...register(
                                       `denomination.${index}.${denom.toString()}`,

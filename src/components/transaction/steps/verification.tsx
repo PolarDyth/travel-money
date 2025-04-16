@@ -63,7 +63,7 @@ export default function Verification() {
       setValue("customerInfo.primaryId", undefined);
       setValue("customerInfo.secondaryId", undefined);
     }
-  }, [setValue, totalSterling]);
+  }, [setValue, totalSterling, cashTendered]);
 
   return (
     <Card>
