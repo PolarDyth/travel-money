@@ -16,16 +16,33 @@ import { TransactionSchema } from "../schema";
 import { currencies } from "@/data/currencies";
 import { calculateDenomThreshold } from "@/lib/utils";
 import { FormControl } from "@/components/ui/form";
-import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useMemo } from "react";
 
 export default function DenomBreakdown() {
-  const { watch, register } = useFormContext<TransactionSchema>();
 
-  const [denomValue, setDenomValue] = useState(0);
-
+  const { watch, register, setValue } = useFormContext<TransactionSchema>();
   const watchedDenoms = watch("denomination");
-  const transactionItems = watch("allCurrencyDetails.currencyDetails") ?? [];
+  const transactionItems = useMemo(
+    () => watch("allCurrencyDetails.currencyDetails") ?? [],
+    [watch]
+  );
+
+  useEffect(() => {
+    transactionItems.forEach((item, index) => {
+      const currency = currencies.find((c) => c.code === item.currencyCode) ?? currencies[0];
+      const thresholds = calculateDenomThreshold(currency);
+      const split = getEvenlySplitDenominations(
+        item.foreignAmount,
+        currency.denominations,
+        thresholds
+      );
+      // Only set if not already set
+      if (!watchedDenoms?.[index] || Array.isArray(watchedDenoms[index])) {
+        setValue(`denomination.${index}`, split, { shouldDirty: false });
+      }
+    });
+  }, [transactionItems, setValue, watchedDenoms]);
 
   function getEvenlySplitDenominations(
     amount: number,
@@ -58,23 +75,10 @@ export default function DenomBreakdown() {
         result[denom] = 0;
       }
     }
-
     return Object.fromEntries(
       Object.entries(result).map(([k, v]) => [String(k), v])
     );
   }
-
-  useEffect(() => {
-    console.log("changed");
-
-    const total = Object.entries(watchedDenoms ?? {}).reduce(
-      (sum, [key, value]) => {
-        return sum + Number(key) * Number(value);
-      },
-      0
-    );
-    setDenomValue(total);
-  }, [watchedDenoms]);
 
   return (
     <Card>
@@ -100,7 +104,12 @@ export default function DenomBreakdown() {
               const currency =
                 currencies.find((c) => c.code === item.currencyCode) ??
                 currencies[0];
-              
+              const thresholds = calculateDenomThreshold(currency);
+              const split = getEvenlySplitDenominations(
+                item.foreignAmount,
+                currency.denominations,
+                thresholds
+              );
               return (
                 <TabsContent
                   key={item.id}
@@ -122,14 +131,6 @@ export default function DenomBreakdown() {
 
                     <div className="space-y-4">
                       {currency.denominations.map((denom) => {
-                        
-                        const thresholds = calculateDenomThreshold(currency);
-                        const split = getEvenlySplitDenominations(
-                          item.foreignAmount,
-                          currency.denominations,
-                          thresholds
-                        );
-
                         return (
                           <div
                             key={denom}
@@ -146,17 +147,26 @@ export default function DenomBreakdown() {
                                   type="number"
                                   min="0"
                                   className="h-8 w-16"
-                                  defaultValue={split[denom] ?? 0}
-                                  {...register(`denomination.${denom}`, {
-                                    valueAsNumber: true,
-                                  })}
+                                  {...register(
+                                    `denomination.${index}.${denom.toString()}`,
+                                    {
+                                      valueAsNumber: true,
+                                    }
+                                  )}
+                                  value={
+                                    watchedDenoms?.[index]?.[denom] ??
+                                    split[denom] ??
+                                    0
+                                  }
                                 />
                               </FormControl>
                             </div>
                             <div className="text-right font-medium">
                               {currency.symbol}
                               {/* Watch the live value if you want, or recalculate based on RHF watch */}
-                              {((watchedDenoms?.[index]?.[denom] ?? 0) * denom).toFixed(2)}
+                              {(
+                                (watchedDenoms?.[index]?.[denom] ?? split[denom]) * denom
+                              ).toFixed(2)}
                             </div>
                           </div>
                         );
@@ -170,21 +180,37 @@ export default function DenomBreakdown() {
                     </span>
                     <span className="font-bold">
                       {currency.symbol}
-                      {denomValue}
+                      {currency.denominations
+                        .reduce(
+                          (sum, denom) =>
+                            sum +
+                            (watchedDenoms?.[index]?.[denom] ?? split[denom]) * denom,
+                          0
+                        )
+                        .toFixed(2)}
                     </span>
                   </div>
 
                   {/* Show warning if denomination total doesn't match foreign amount */}
-                  {Math.abs(denomValue - item.foreignAmount) > 0.01 && (
-              <Alert variant="destructive">
-                <Info className="h-4 w-4" />
-                <AlertTitle>Denomination mismatch</AlertTitle>
-                <AlertDescription>
-                  The total from denominations does not match the foreign
-                  amount. Please adjust the denominations.
-                </AlertDescription>
-              </Alert>
-            )}
+                  {(() => {
+                    const denomValue = currency.denominations.reduce(
+                      (acc, denom) =>
+                        acc + (watchedDenoms?.[index]?.[denom] ?? split[denom]) * denom,
+                      0
+                    );
+                    return (
+                      Math.abs(denomValue - item.foreignAmount) > 0.01 && (
+                        <Alert variant="destructive">
+                          <Info className="h-4 w-4" />
+                          <AlertTitle>Denomination mismatch</AlertTitle>
+                          <AlertDescription>
+                            The total from denominations does not match the
+                            foreign amount. Please adjust the denominations.
+                          </AlertDescription>
+                        </Alert>
+                      )
+                    );
+                  })()}
                 </TabsContent>
               );
             })}
