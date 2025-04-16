@@ -4,6 +4,7 @@ import {
   sourceType,
   useOfFundsType,
 } from "@/constants/Identification";
+import { currencies } from "@/data/currencies";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
 
@@ -42,11 +43,32 @@ export const currencyDetailsSchema =
     id: z.string().uuid(),
     transactionType: z.enum(["SELL", "BUY"]),
     currencyCode: z.string().length(3).toUpperCase(),
-    sterlingAmount: z.coerce.number().positive(),
+    sterlingAmount: z.coerce.number(),
     foreignAmount: z.coerce.number().positive(),
     exchangeRate: z.coerce.number().positive(),
     // Operator
     operatorId: z.number().int().optional(),
+  }).refine((data) => {
+    const currency = currencies.find((c) => c.code === data.currencyCode);
+    if (!currency) return false;
+  
+    // Use the same calculation as your handleSterlingChange/handleForeignChange
+    let expectedSterling: number;
+    if (data.transactionType === "SELL") {
+      // SELL: foreignAmount / rate, rounded up to nearest denomination
+      const foreignDiv = data.foreignAmount / data.exchangeRate;
+      expectedSterling = foreignDiv;
+    } else {
+      // BUY: foreignAmount / -abs(rate), rounded up to nearest denomination
+      const foreignDiv = data.foreignAmount / -Math.abs(data.exchangeRate);
+      expectedSterling = foreignDiv;
+    }
+    console.log("Expected Sterling:", expectedSterling);
+    console.log("Actual Sterling:", data.sterlingAmount);
+    // Use a small tolerance for floating point comparison
+    return Math.abs(data.sterlingAmount - expectedSterling) < 0.01;
+  }, {
+    message: "Sterling amount does not match the calculated value based on foreign amount and exchange rate.",
   })
 
 export const allCurrencyDetailsSchema = z.object({
@@ -77,7 +99,7 @@ export const customerInfoSchema = z.object({
   primaryId: standardIdSchema.optional(),
   secondaryId: enhancedIdSchema.optional(),
 
-  sterlingAmount: z.coerce.number().positive(),
+  sterlingAmount: z.coerce.number(),
 });
 
 // Verification schema

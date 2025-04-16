@@ -72,14 +72,16 @@ export default function CurrencyDetailsForm() {
       (sum, item) => sum + (item.sterlingAmount || 0),
       0
     );
-    console.log("Total Sterling:", totalSterling);
     setValue("allCurrencyDetails.totalSterling", totalSterling);
-    if (totalSterling >= 500) {
-      setTransactionLevel("MEDIUM");
-    } else if (totalSterling >= 5000) {
+    if (totalSterling >= 5000) {
       setTransactionLevel("HIGH");
+    } else if (totalSterling >= 500) {
+      setTransactionLevel("MEDIUM");
+      setValue("customerInfo.secondaryId", undefined);
     } else {
       setTransactionLevel("LOW");
+      setValue("customerInfo.primaryId", undefined);
+      setValue("customerInfo.secondaryId", undefined);
     }
   }, [watchedCurrencyDetails, setValue]);
 
@@ -90,9 +92,9 @@ export default function CurrencyDetailsForm() {
     const current = currencyDetailsSchema.safeParse(activeForm.getValues());
     if (current.success) {
       append({ ...current.data, id: uuidv4() });
+      activeForm.reset();
+      setActiveCurrency(currencies[0]);
     }
-
-    activeForm.reset();
   };
 
   // Handler to remove an item
@@ -117,12 +119,13 @@ export default function CurrencyDetailsForm() {
     if (value === "") return;
     const currency = currencies.find((c) => c.code === activeCurrency?.code);
 
-    console.log(currency);
     const sterlingAmount = parseFloat(value);
     if (isNaN(sterlingAmount) || !currency) return;
 
     const rate =
-      currentTransactionType === "BUY" ? currency.buy : currency.sell;
+      currentTransactionType === "BUY"
+        ? -Math.abs(currency.buy)
+        : currency.sell;
     const lowestDenomination = Math.min(...currency.denominations);
 
     // Calculate foreign amount and round up
@@ -146,7 +149,9 @@ export default function CurrencyDetailsForm() {
     if (isNaN(foreignAmount) || !currency) return;
 
     const rate =
-      currentTransactionType === "BUY" ? currency.buy : currency.sell;
+      currentTransactionType === "BUY"
+        ? -Math.abs(currency.buy)
+        : currency.sell;
     const lowestDenomination = Math.min(...currency.denominations);
 
     // Round up to nearest denomination
@@ -154,7 +159,7 @@ export default function CurrencyDetailsForm() {
 
     // Calculate sterling amount
     const sterlingAmount = parseFloat((foreignAmount / rate).toFixed(2));
-
+    console.log("sterlingAmount", sterlingAmount);
     activeForm.setValue("sterlingAmount", sterlingAmount);
     activeForm.setValue("foreignAmount", foreignAmount);
   };
@@ -180,16 +185,36 @@ export default function CurrencyDetailsForm() {
                     <FormControl>
                       <RadioGroup
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+
+                          const currency = currencies.find(
+                            (c) => c.code === activeCurrency?.code
+                          );
+                          if (value === "BUY") {
+                            activeForm.setValue(
+                              "exchangeRate",
+                              currency?.buy ?? 0
+                            );
+                          } else if (value === "SELL") {
+                            activeForm.setValue(
+                              "exchangeRate",
+                              currency?.sell ?? 0
+                            );
+                          }
+
+                          activeForm.setValue("sterlingAmount", 0);
+                          activeForm.setValue("foreignAmount", 0);
+                        }}
                         className="flex flex-col space-y-1"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="SELL" id="SELL" />
-                          <Label htmlFor="SELL">Sell</Label>
+                          <Label htmlFor="SELL">Sell Foreign Currency</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="BUY" id="BUY" />
-                          <Label htmlFor="BUY">Buy</Label>
+                          <Label htmlFor="BUY">Buy Foreign Currency</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -210,28 +235,22 @@ export default function CurrencyDetailsForm() {
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
-                        setActiveCurrency(
+                        const selectedCurrency =
                           currencies.find((c) => c.code === value) ||
-                            currencies[0]
-                        );
+                          currencies[0];
+                        setActiveCurrency(selectedCurrency);
                         activeForm.setValue("currencyCode", value);
 
                         activeForm.setValue("foreignAmount", 0);
                         activeForm.setValue("sterlingAmount", 0);
 
-                        console.log("Ran here");
-                        if (activeCurrency) {
-                          console.log("Ran");
-                          activeForm.setValue(
-                            "exchangeRate",
-                            calculateExchangeRate(
-                              activeCurrency,
-                              currentTransactionType
-                            )
-                          );
-                        } else {
-                          activeForm.setValue("exchangeRate", 0);
-                        }
+                        activeForm.setValue(
+                          "exchangeRate",
+                          calculateExchangeRate(
+                            selectedCurrency,
+                            currentTransactionType
+                          )
+                        );
                       }}
                     >
                       <FormControl>
@@ -269,6 +288,7 @@ export default function CurrencyDetailsForm() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -343,11 +363,11 @@ export default function CurrencyDetailsForm() {
                 </FormItem>
               )}
             />
+            <FormMessage />
           </div>
-
           <Button
             onClick={addToTransaction}
-            disabled={sterlingValue <= 0 || foreignValue <= 0}
+            disabled={sterlingValue === 0 || foreignValue <= 0}
             className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />

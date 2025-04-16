@@ -15,7 +15,7 @@ export const currencies = [
     rate: 1.27,
     buy: 1.45,
     sell: 1.24,
-    denominations: [100, 50, 20, 10, 5, 2, 1],
+    denominations: [100, 50, 20, 10, 5, 1],
   },
   {
     code: "JPY",
