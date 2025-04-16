@@ -15,7 +15,7 @@ export const currencies = [
     rate: 1.27,
     buy: 1.45,
     sell: 1.24,
-    denominations: [100, 50, 20, 10, 5, 2, 1],
+    denominations: [100, 50, 20, 10, 5, 1],
   },
   {
     code: "JPY",
@@ -24,7 +24,7 @@ export const currencies = [
     rate: 189.45,
     buy: 194.1,
     sell: 184.8,
-    denominations: [10000, 5000, 2000, 1000],
+    denominations: [10000, 5000, 1000],
   },
   {
     code: "AUD",
@@ -55,6 +55,18 @@ export const currencies = [
   },
 ];
 
+export type ThresholdRule = {
+  maxSterling: number;
+  threshold: number;
+}
+
+export const defaultRules: ThresholdRule[] = [
+  { maxSterling: 30, threshold: 0 },
+  { maxSterling: 60, threshold: 500 },
+  { maxSterling: Infinity, threshold: 5000 }, // Fallback rule
+];
+
+
 export type Currency = {
   code: string;
   name: string;
@@ -63,4 +75,5 @@ export type Currency = {
   buy: number;
   sell: number;
   denominations: number[];
+  thresholdRule?: ThresholdRule[];
 };

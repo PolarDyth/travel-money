@@ -65,10 +65,11 @@ export default function AddressCommandBox() {
               <CommandInput
                 placeholder="Search address..."
                 {...field}
-                value={query}
+                value={field.value}
                 onValueChange={(value) => {
                   setQuery(value);
                   setIsOpen(true);
+                  field.onChange(value);
                 }}
                 onBlur={() => {
                   setTimeout(() => setIsOpen(false), 100);
