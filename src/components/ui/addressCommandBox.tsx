@@ -67,9 +67,9 @@ export default function AddressCommandBox() {
                 {...field}
                 value={field.value}
                 onValueChange={(value) => {
+                  field.onChange(value);
                   setQuery(value);
                   setIsOpen(true);
-                  field.onChange(value);
                 }}
                 onBlur={() => {
                   setTimeout(() => setIsOpen(false), 100);

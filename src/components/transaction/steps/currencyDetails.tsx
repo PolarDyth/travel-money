@@ -311,7 +311,7 @@ export default function CurrencyDetailsForm() {
                         className="pl-10 input"
                         {...field}
                         disabled={currentTransactionType === "BUY"}
-                        onBlur={() => handleSterlingChange}
+                        onBlur={handleSterlingChange}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
