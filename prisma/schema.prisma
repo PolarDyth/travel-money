@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -11,40 +11,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Customer {
+  id                   Int      @id @default(autoincrement())
+  firstNameEnc         String
+  lastNameEnc          String
+  postcodeEnc          String
+  addressLine1Enc      String
+  cityEnc              String
+  countryEnc           String
+  emailEnc             String?
+  phoneEnc             String?
+
+  // Primary ID
+  primaryIdTypeEnc       String?
+  primaryIdNumberEnc     String?
+  primaryIdIssueDateEnc  String?
+  primaryIdExpiryDateEnc String?
+  customerDOBEnc         String?
+
+  // Secondary ID
+  secondaryIdTypeEnc        String?
+  secondaryIdNumberEnc      String?
+  secondaryIdIssueDateEnc   String?
+  secondaryIdExpiryDateEnc  String?
+
+  // Relations
+  transactions           Transaction[]
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
 model Transaction {
-  id Int @id @default(autoincrement())
+  id                Int      @id @default(autoincrement())
+  transactionType   String
+  transactionDate   DateTime @default(now())
+  operatorId        Int
+
+  // Relations
+  customerId        Int
+  customer          Customer @relation(fields: [customerId], references: [id])
+
+  // Currency details (one-to-many)
+  currencyDetails   CurrencyDetail[]
+
+  // Verification
+  paymentMethod           String   // Store as JSON string
+  cashTendered            Decimal? @db.Decimal(10, 2)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model CurrencyDetail {
+  id              Int      @id @default(autoincrement())
+  transaction     Transaction @relation(fields: [transactionId], references: [id])
+  transactionId   Int
+
+  currencyCode    String
+  sterlingAmount  Decimal  @db.Decimal(10, 2)
+  foreignAmount   Decimal  @db.Decimal(10, 2)
+  exchangeRate    Decimal  @db.Decimal(10, 6)
   transactionType String
-  currencyCode String
-  sterlingAmount Decimal @db.Decimal(10, 2)
-  foreinAmount Decimal @db.Decimal(10, 2)
-  exchangeRate Decimal @db.Decimal(10, 6)
-  paymentMethod String
-  transactionDate DateTime @default(now())
-  operatorId Int
 
-  // Customer Info
-  customerFirstName String
-  customerLastName String
-  customerPostcode String
-  customerAddressLine1 String
-  customerDOB DateTime?
+  operatorId      Int?
 
-  // ID Fields
-  primaryIdType String?
-  primaryIdNumber String?
-  primaryIdIssueDate DateTime?
-  primaryIdExpiryDate DateTime?
-
-  // Secondary ID Fields
-  secondaryIdType String?
-  secondaryIdNumber String?
-  secondaryIdIssueDate DateTime?
-  secondaryIdExpiryDate DateTime?
-
-  // Transaction Status
-  confirmationStepsCompleted Boolean @default(false)
-  amountCounted Boolean @default(false)
-  readBackDone Boolean @default(false)
-
-  notes String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

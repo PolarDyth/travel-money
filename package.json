@@ -54,7 +54,10 @@
     "eslint-config-next": "15.2.4",
     "postcss": "^8.5.3",
     "prisma": "^6.5.0",
+    "prisma-erd-generator": "^2.0.4",
     "tailwindcss": "^4.1.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
   }
 }
