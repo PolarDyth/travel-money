@@ -35,6 +35,9 @@ export function decrypt(encrypted: {
   tag: string;
   data: string;
 }) {
+  if (!encrypted.iv || !encrypted.tag || !encrypted.data) {
+    throw new Error("Missing iv, tag, or data in encrypted payload");
+  }
   const iv = Buffer.from(encrypted.iv, "hex");
   const tag = Buffer.from(encrypted.tag, "hex");
   const data = Buffer.from(encrypted.data, "hex");
@@ -61,6 +64,9 @@ export function encryptToString(plainText: string) {
 }
 
 export function decryptFromString(encryptedString: string) {
+  if (!encryptedString) {
+    throw new Error("No encrypted string provided");
+  }
   const encrypted = JSON.parse(Buffer.from(encryptedString, "base64").toString("utf8"));
   return decrypt(encrypted);
 }
