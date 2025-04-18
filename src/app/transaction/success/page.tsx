@@ -18,9 +18,9 @@ import Link from "next/link";
 export default async function TransactionSuccessPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const transactionId = await searchParams.id;
+  searchParams: Promise<{ id?: string }>;}
+) {
+  const { id: transactionId } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const transaction: TransactionWithRelations = await fetch(
     `${baseUrl}/api/transaction/?id=${transactionId}`
