@@ -1,7 +1,7 @@
 import { transactionSchema } from "@/components/transaction/schema";
 import { z } from "zod";
 
-export const validatedTransactionSchema = transactionSchema.superRefine((data, ctx) => {
+export const validatedTransactionSchema = transactionSchema.superRefine(async (data, ctx) => {
     const amount = data.allCurrencyDetails.totalSterling;
 
     if (amount >= 500 && !data.customerInfo.primaryId) {
