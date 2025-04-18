@@ -5,7 +5,6 @@ import {
   sourceType,
   useOfFundsType,
 } from "@/constants/Identification";
-import { currencies } from "@/data/currencies";
 import { isValidPhoneNumber } from "libphonenumber-js/min";
 import { z } from "zod";
 
@@ -52,8 +51,6 @@ export const currencyDetailsSchema = z
   })
   .refine(
     (data) => {
-      const currency = currencies.find((c) => c.code === data.currencyCode);
-      if (!currency) return false;
 
       // Use the same calculation as your handleSterlingChange/handleForeignChange
       let expectedSterling: number;

@@ -13,13 +13,17 @@ import { Input } from "@/components/ui/input";
 import { Check, Info } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { TransactionSchema } from "../schema";
-import { currencies } from "@/data/currencies";
 import { calculateDenomThreshold } from "@/lib/utils";
 import { FormControl } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useMemo } from "react";
+import { useCurrencyContext } from "@/app/context/CurrencyContext";
 
 export default function DenomBreakdown() {
+  const { currencies, error } = useCurrencyContext();
+
+  if (error) throw new Error("Failed to fetch currencies");
+
   const { watch, register, setValue } = useFormContext<TransactionSchema>();
   const watchedDenoms = watch("denomination");
   const transactionItems = useMemo(
@@ -30,7 +34,7 @@ export default function DenomBreakdown() {
   useEffect(() => {
     transactionItems.forEach((item, index) => {
       const currency =
-        currencies.find((c) => c.code === item.currencyCode) ?? currencies[0];
+        currencies?.find((c) => c.code === item.currencyCode) ?? currencies![0];
       const thresholds = calculateDenomThreshold(currency);
       const split = getEvenlySplitDenominations(
         item.foreignAmount,
@@ -42,7 +46,7 @@ export default function DenomBreakdown() {
         setValue(`denomination.${index}`, split, { shouldDirty: false });
       }
     });
-  }, [transactionItems, setValue, watchedDenoms]);
+  }, [transactionItems, setValue, watchedDenoms, currencies]);
 
   function getEvenlySplitDenominations(
     amount: number,
@@ -87,7 +91,7 @@ export default function DenomBreakdown() {
 
   if (!hasSellTransaction) {
     return (
-      <div >
+      <div>
         <Card>
           <CardHeader>
             <CardTitle>Guidance</CardTitle>
@@ -157,8 +161,8 @@ export default function DenomBreakdown() {
 
               {transactionItems.map((item, index) => {
                 const currency =
-                  currencies.find((c) => c.code === item.currencyCode) ??
-                  currencies[0];
+                  currencies?.find((c) => c.code === item.currencyCode) ??
+                  currencies![0];
                 const thresholds = calculateDenomThreshold(currency);
                 const split = getEvenlySplitDenominations(
                   item.foreignAmount,
@@ -243,7 +247,8 @@ export default function DenomBreakdown() {
                           .reduce(
                             (sum, denom) =>
                               sum +
-                              (watchedDenoms?.[index]?.[denom] ?? split[denom]) *
+                              (watchedDenoms?.[index]?.[denom] ??
+                                split[denom]) *
                                 denom,
                             0
                           )
