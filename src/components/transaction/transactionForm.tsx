@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import CurrencyDetailsForm from "./steps/currencyDetails";
 import CustomerInfo from "./steps/customerInfo";
 import DenomBreakdown from "./steps/denomBreakdown";
@@ -50,8 +50,11 @@ const steps = [
 
 const TOTAL_STEPS = steps.length;
 
+
 export default function Transaction() {
   const [currentStep, setCurrentStep] = useState(0);
+
+  const router = useRouter();
 
   const methods = useForm<TransactionSchema>({
     mode: "onTouched",
@@ -85,13 +88,11 @@ export default function Transaction() {
         throw new Error("Failed to submit transaction");
       }
 
-      alert("Transaction submitted successfully!");
-    } catch (error) {
-      if (error instanceof Error) {
-        alert("Failed to submit transaction: " + error.message);
-      } else {
-        alert("Failed to submit transaction");
-      }
+      const result = await response.json();
+      const transactionId = result.transactionId;
+      router.push(`/transaction/success?id=${transactionId}`)
+    } catch {
+      throw new Error("Failed to submit transaction");
     }
   });
 

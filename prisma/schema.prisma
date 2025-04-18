@@ -12,15 +12,15 @@ datasource db {
 }
 
 model Customer {
-  id                   Int      @id @default(autoincrement())
-  firstNameEnc         String
-  lastNameEnc          String
-  postcodeEnc          String
-  addressLine1Enc      String
-  cityEnc              String
-  countryEnc           String
-  emailEnc             String?
-  phoneEnc             String?
+  id              Int     @id @default(autoincrement())
+  firstNameEnc    String
+  lastNameEnc     String
+  postcodeEnc     String
+  addressLine1Enc String
+  cityEnc         String
+  countryEnc      String
+  emailEnc        String?
+  phoneEnc        String?
 
   // Primary ID
   primaryIdTypeEnc       String?
@@ -30,48 +30,76 @@ model Customer {
   customerDOBEnc         String?
 
   // Secondary ID
-  secondaryIdTypeEnc        String?
-  secondaryIdNumberEnc      String?
-  secondaryIdIssueDateEnc   String?
-  secondaryIdExpiryDateEnc  String?
+  secondaryIdTypeEnc       String?
+  secondaryIdNumberEnc     String?
+  secondaryIdIssueDateEnc  String?
+  secondaryIdExpiryDateEnc String?
 
   // Relations
-  transactions           Transaction[]
+  transactions Transaction[]
 
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Transaction {
-  id                Int      @id @default(autoincrement())
-  operatorId        Int
+  id         Int @id @default(autoincrement())
+  operatorId Int
 
   // Relations
-  customerId        Int
-  customer          Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id])
 
   // Currency details (one-to-many)
-  currencyDetails   CurrencyDetail[]
+  currencyDetails CurrencyDetail[]
 
   // Verification
-  paymentMethod           String   // Store as JSON string
-  cashTendered            Decimal? @db.Decimal(10, 2)
+  paymentMethod String // Store as JSON string
+  cashTendered  Decimal? @db.Decimal(10, 2)
+  totalSterling Decimal? @db.Decimal(10, 2)
 
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CurrencyDetail {
-  id              Int      @id @default(autoincrement())
-  transaction     Transaction @relation(fields: [transactionId], references: [id])
-  transactionId   Int
+  id            Int         @id @default(autoincrement())
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int
 
-  currencyCode    String
+  currencyCode    String   @db.Char(3)
+  currency        Currency @relation(fields: [currencyCode], references: [code])
   sterlingAmount  Decimal  @db.Decimal(10, 2)
   foreignAmount   Decimal  @db.Decimal(10, 2)
   exchangeRate    Decimal  @db.Decimal(10, 6)
   transactionType String
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExchangeRate {
+  id           BigInt   @id @default(autoincrement())
+  currencyCode String   @db.Char(3)
+  baseCode     String   @db.Char(3)
+  rate         Decimal  @db.Decimal(18, 8)
+  buyRate      Decimal  @db.Decimal(18, 8)
+  sellRate     Decimal  @db.Decimal(18, 8)
+  fetchedAt    DateTime @default(now()) // exact timestamp
+  date         DateTime // just the date part for daily snapshots
+
+  currency Currency @relation("FxRates", fields: [currencyCode], references: [code])
+
+  @@unique([currencyCode, baseCode, date], name: "unique_daily_rate")
+  @@index([fetchedAt])
+}
+
+model Currency {
+  code            String           @id @db.Char(3)
+  name            String
+  symbol          String
+  denominations   Int[]
+  thresholdRules  Json?
+  rates           ExchangeRate[]   @relation("FxRates")
+  currencyDetails CurrencyDetail[]
 }

@@ -27,11 +27,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { currencies } from "@/data/currencies";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
+import { Currency } from "@/data/currencies";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Verification() {
+    const { data: currencies, error } = useSWR<Currency[], Error>(
+      "/api/currencies",
+      fetcher,
+      { suspense: true }
+    );
+
+  if (error) throw new Error("Failed to fetch currencies");
   const { watch, register, control, setValue } =
     useFormContext<TransactionSchema>();
 
@@ -276,7 +286,7 @@ export default function Verification() {
               </TableHeader>
               <TableBody>
                 {transactionItems.map((item) => {
-                  const currency = currencies.find(
+                  const currency = currencies?.find(
                     (currency) => currency.code === item.currencyCode
                   );
                   return (
