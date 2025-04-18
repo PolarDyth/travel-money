@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
         updateData.secondaryIdTypeEnc = encryptToString(
           validated.data.customerInfo.secondaryId.secondaryType
         );
-        updateData.secondaryIdTypeEnc = encryptToString(
+        updateData.secondaryIdNumberEnc = encryptToString(
           validated.data.customerInfo.secondaryId.secondaryNumber
         );
         updateData.secondaryIdIssueDateEnc = encryptToString(
