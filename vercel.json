@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "api/cron/fetch-rates",
+      "path": "/api/cron/fetch-rates",
       "schedule": "0 5 * * *"
     }
   ]
