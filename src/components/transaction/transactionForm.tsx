@@ -71,8 +71,28 @@ export default function Transaction() {
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
 
-  const onSubmit = methods.handleSubmit((data: TransactionSchema) => {
-    console.log("Form submitted successfully:", data);
+  const onSubmit = methods.handleSubmit(async (data: TransactionSchema) => {
+    try {
+      const response = await fetch("/api/transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit transaction");
+      }
+
+      alert("Transaction submitted successfully!");
+    } catch (error) {
+      if (error instanceof Error) {
+        alert("Failed to submit transaction: " + error.message);
+      } else {
+        alert("Failed to submit transaction");
+      }
+    }
   });
 
   return (

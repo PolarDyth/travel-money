@@ -6,7 +6,7 @@ import {
   useOfFundsType,
 } from "@/constants/Identification";
 import { currencies } from "@/data/currencies";
-import { isValidPhoneNumber } from "react-phone-number-input";
+import { isValidPhoneNumber } from "libphonenumber-js/min";
 import { z } from "zod";
 
 
@@ -101,7 +101,9 @@ export const customerInfoSchema = z.object({
   customerCountry: z.string().nonempty(),
 
   customerEmail: z.string().email().optional(),
-  customerPhone: z.string().refine(isValidPhoneNumber).optional(),
+  customerPhone: z.string().refine((value) => {
+    return isValidPhoneNumber(value);
+  }).optional(),
 
   primaryId: standardIdSchema.optional(),
   secondaryId: enhancedIdSchema.optional(),

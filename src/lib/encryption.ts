@@ -3,6 +3,7 @@ import crypto from "crypto";
 const ALGORITHM = "aes-256-gcm";
 const KEY = Buffer.from(process.env.AES_KEY!, "hex"); // 32 bytes in hex
 const IV_LENGTH = 12; // recommended for GCM
+const DETERMINISTIC_IV = Buffer.alloc(16, 0)
 
 export function encrypt(plainText: string) {
   // 1) Generate a fresh IV
@@ -61,4 +62,33 @@ export function encryptToString(plainText: string) {
 export function decryptFromString(encryptedString: string) {
   const encrypted = JSON.parse(Buffer.from(encryptedString, "base64").toString("utf8"));
   return decrypt(encrypted);
+}
+
+export function encryptDeterministic(plainText: string): string {
+  // 1) Use the fixed IV
+  const cipher = crypto.createCipheriv(ALGORITHM, KEY, DETERMINISTIC_IV);
+
+  // 2) Encrypt
+  const encrypted = Buffer.concat([
+    cipher.update(plainText, "utf8"),
+    cipher.final(),
+  ]);
+
+  // 3) Return ciphertext as hex (or base64 if you prefer)
+  return encrypted.toString("hex");
+}
+
+/**
+ * Deterministic AES‑256‑CBC decryption (matches encryptDeterministic).
+ */
+export function decryptDeterministic(cipherHex: string): string {
+  const data = Buffer.from(cipherHex, "hex");
+  const decipher = crypto.createDecipheriv(ALGORITHM, KEY, DETERMINISTIC_IV);
+
+  const decrypted = Buffer.concat([
+    decipher.update(data),
+    decipher.final(),
+  ]);
+
+  return decrypted.toString("utf8");
 }
