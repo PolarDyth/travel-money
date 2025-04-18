@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { decrypt, decryptFromString, encrypt, encryptToString } from "@/lib/encryption";
 import {
   ArrowLeftRight,
   ArrowRightLeft,
@@ -25,9 +24,6 @@ import {
 import Link from "next/link";
 
 export default function Home() {
-  const encrypted = encrypt("what a wonderful wordl");
-  console.log(encrypted);
-  console.log(decrypt(encrypted));
   return (
     <main>
       <div className="flex items-center justify-between">
