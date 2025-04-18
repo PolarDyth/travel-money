@@ -28,9 +28,13 @@ import {
 import { Check, FileText, Receipt } from "lucide-react";
 import { TransactionSchema } from "../schema";
 import { useFormContext } from "react-hook-form";
-import { currencies } from "@/data/currencies";
+import { useCurrencyContext } from "@/app/context/CurrencyContext";
 
 export default function Confirmation() {
+
+  const { currencies, error } = useCurrencyContext();
+
+  if (error) throw new Error(error.message);
   const { watch } = useFormContext<TransactionSchema>();
 
   const transactionItems = watch("allCurrencyDetails.currencyDetails");
@@ -115,7 +119,7 @@ export default function Confirmation() {
                 </TableHeader>
                 <TableBody>
                   {transactionItems.map((item) => {
-                    const currency = currencies.find(
+                    const currency = currencies?.find(
                       (c) => c.code === item.currencyCode
                     );
                     return (
@@ -239,7 +243,7 @@ export default function Confirmation() {
                     <Separator className="my-2" />
 
                     {transactionItems.map((item, index) => {
-                      const currency = currencies.find(
+                      const currency = currencies?.find(
                         (c) => c.code === item.currencyCode
                       );
                       return (
@@ -257,10 +261,10 @@ export default function Confirmation() {
                               {item.transactionType === "SELL"
                                 ? `£1 = ${
                                     currency?.symbol
-                                  }${currency?.sell.toFixed(4)}`
+                                  }${currency?.sellRate}`
                                 : `${currency?.symbol}1 = £${(
-                                    1 / (currency?.buy ?? 0)
-                                  ).toFixed(4)}`}
+                                    1 / (currency?.buyRate ?? 0)
+                                  )}`}
                             </span>
                           </div>
                           <div className="flex justify-between">
