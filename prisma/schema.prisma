@@ -44,8 +44,6 @@ model Customer {
 
 model Transaction {
   id                Int      @id @default(autoincrement())
-  transactionType   String
-  transactionDate   DateTime @default(now())
   operatorId        Int
 
   // Relations
@@ -73,8 +71,6 @@ model CurrencyDetail {
   foreignAmount   Decimal  @db.Decimal(10, 2)
   exchangeRate    Decimal  @db.Decimal(10, 6)
   transactionType String
-
-  operatorId      Int?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

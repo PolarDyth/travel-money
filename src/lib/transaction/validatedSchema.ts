@@ -1,5 +1,3 @@
-"use server";
-
 import { transactionSchema } from "@/components/transaction/schema";
 import { z } from "zod";
 

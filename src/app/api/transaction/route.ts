@@ -1,11 +1,11 @@
 "use server";
 
 import { TransactionSchema } from "@/components/transaction/schema";
-import { encrypt } from "@/lib/encryption";
+import { decryptFromString, encryptDeterministic, encryptToString } from "@/lib/encryption";
 import { prisma } from "@/lib/prisma";
 import { validatedTransactionSchema } from "@/lib/transaction/validatedSchema";
-import { NextRequest } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "../../../../generated/prisma";
 
 export async function POST(req: NextRequest) {
   const body: TransactionSchema = await req.json();
@@ -17,35 +17,105 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const customer = await prisma.customer.create({
+  try {
+  const customers = await prisma.customer.findMany({
+    where: {
+      firstNameEnc: encryptDeterministic(validated.data.customerInfo.customerFirstName),
+      lastNameEnc: encryptDeterministic(validated.data.customerInfo.customerLastName),
+      postcodeEnc: encryptDeterministic(validated.data.customerInfo.customerPostcode),
+    }
+  });
+
+  let customer =
+    customers.find(
+      (c) =>
+        decryptFromString(c.addressLine1Enc) ===
+        validated.data.customerInfo.customerAddressLine1
+    ) || null;
+
+  if (!customer) {
+  customer = await prisma.customer.create({
     data: {
-      firstNameEnc: encrypt(body.customerInfo.customerFirstName),
-      lastNameEnc: encrypt(body.customerInfo.customerLastName),
-      addressLine1Enc: encrypt(body.customerInfo.customerAddressLine1),
-      postcodeEnc: encrypt(body.customerInfo.customerPostcode),
-      cityEnc: encrypt(body.customerInfo.customerCity),
-      countryEnc: encrypt(body.customerInfo.customerCountry),
-      emailEnc: encrypt(body.customerInfo.customerEmail ?? ""),
-      phoneEnc: encrypt(body.customerInfo.customerPhone ?? ""),
+      firstNameEnc: encryptDeterministic(validated.data.customerInfo.customerFirstName),
+      lastNameEnc: encryptDeterministic(validated.data.customerInfo.customerLastName),
+      addressLine1Enc: encryptToString(validated.data.customerInfo.customerAddressLine1),
+      postcodeEnc: encryptDeterministic(validated.data.customerInfo.customerPostcode),
+      cityEnc: encryptToString(validated.data.customerInfo.customerCity),
+      countryEnc: encryptToString(validated.data.customerInfo.customerCountry),
+      emailEnc: encryptToString(validated.data.customerInfo.customerEmail ?? ""),
+      phoneEnc: encryptToString(validated.data.customerInfo.customerPhone ?? ""),
       
       // Primary ID
-      ...(body.customerInfo.primaryId && {
-        primaryIdTypeEnc: encrypt(body.customerInfo.primaryId.type),
-        primaryIdEnc: encrypt(body.customerInfo.primaryId.number),
-        primaryIdIssueDateEnc: encrypt(body.customerInfo.primaryId.issueDate ? body.customerInfo.primaryId.issueDate.toISOString() : ""),
-        primaryIdExpiryDateEnc: encrypt(body.customerInfo.primaryId.expiryDate.toISOString()),
-        customerDOBEnc: encrypt(body.customerInfo.primaryId.customerDOB.toISOString()),
+      ...(validated.data.customerInfo.primaryId && {
+        primaryIdTypeEnc: encryptToString(validated.data.customerInfo.primaryId.type),
+        primaryIdNumberEnc: encryptToString(validated.data.customerInfo.primaryId.number),
+        primaryIdIssueDateEnc: encryptToString(validated.data.customerInfo.primaryId.issueDate ? validated.data.customerInfo.primaryId.issueDate.toISOString() : ""),
+        primaryIdExpiryDateEnc: encryptToString(validated.data.customerInfo.primaryId.expiryDate.toISOString()),
+        customerDOBEnc: encryptToString(validated.data.customerInfo.primaryId.customerDOB.toISOString()),
       }),
-      ...(body.customerInfo.secondaryId && {
-        secondaryIdTypeEnc: encrypt(body.customerInfo.secondaryId.secondaryType),
-        secondaryIdEnc: encrypt(body.customerInfo.secondaryId.secondaryNumber),
-        secondaryIdIssueDateEnc: encrypt(body.customerInfo.secondaryId.secondaryIssueDate ? body.customerInfo.secondaryId.secondaryIssueDate.toISOString() : ""),      
-        secondaryIdExpiryDateEnc: encrypt(body.customerInfo.secondaryId.secondaryExpiryDate ? body.customerInfo.secondaryId.secondaryExpiryDate.toISOString() : ""),    
+      // Secondary ID
+      ...(validated.data.customerInfo.secondaryId && {
+        secondaryIdTypeEnc: encryptToString(validated.data.customerInfo.secondaryId.secondaryType),
+        secondaryIdEnc: encryptToString(validated.data.customerInfo.secondaryId.secondaryNumber),
+        secondaryIdIssueDateEnc: encryptToString(validated.data.customerInfo.secondaryId.secondaryIssueDate ? validated.data.customerInfo.secondaryId.secondaryIssueDate.toISOString() : ""),      
+        secondaryIdExpiryDateEnc: encryptToString(validated.data.customerInfo.secondaryId.secondaryExpiryDate ? validated.data.customerInfo.secondaryId.secondaryExpiryDate.toISOString() : ""),    
       }),
-    }
+    } 
   }) 
+} else {
+
+  // Update existing customer with any new fields if present
+  const updateData: Prisma.CustomerUpdateInput = {};
+
+  if (validated.data.customerInfo.primaryId) {
+    updateData.primaryIdTypeEnc = encryptToString(validated.data.customerInfo.primaryId.type);
+    updateData.primaryIdNumberEnc = encryptToString(validated.data.customerInfo.primaryId.number);
+    updateData.primaryIdIssueDateEnc = encryptToString(validated.data.customerInfo.primaryId.issueDate ? validated.data.customerInfo.primaryId.issueDate.toISOString() : "");
+    updateData.primaryIdExpiryDateEnc = encryptToString(validated.data.customerInfo.primaryId.expiryDate.toISOString());
+    updateData.customerDOBEnc = encryptToString(validated.data.customerInfo.primaryId.customerDOB.toISOString());
+  }
+  if (validated.data.customerInfo.secondaryId) {
+    updateData.secondaryIdTypeEnc = encryptToString(validated.data.customerInfo.secondaryId.secondaryType);
+    updateData.secondaryIdTypeEnc = encryptToString(validated.data.customerInfo.secondaryId.secondaryNumber);
+    updateData.secondaryIdIssueDateEnc = encryptToString(validated.data.customerInfo.secondaryId.secondaryIssueDate ? validated.data.customerInfo.secondaryId.secondaryIssueDate.toISOString() : "");
+    updateData.secondaryIdExpiryDateEnc = encryptToString(validated.data.customerInfo.secondaryId.secondaryExpiryDate ? validated.data.customerInfo.secondaryId.secondaryExpiryDate.toISOString() : "");
+  }
+
+  // Only update if there is something to update
+  if (Object.keys(updateData).length > 0) {
+    customer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: updateData,
+    });
+  }
+}
+
   
+
   const transaction = await prisma.transaction.create({
-    
+    data: {
+      operatorId: 1,
+      customerId: customer.id,
+      paymentMethod: JSON.stringify(validated.data.verification.paymentMethod),
+      cashTendered: validated.data.verification.cashTendered,
+    }
   })
+
+  validated.data.allCurrencyDetails.currencyDetails.forEach(async (currency) => {
+    await prisma.currencyDetail.create({
+      data: {
+        transactionId: transaction.id,
+        currencyCode: currency.currencyCode,
+        sterlingAmount: currency.sterlingAmount,
+        foreignAmount: currency.foreignAmount,
+        exchangeRate: currency.exchangeRate,
+        transactionType: currency.transactionType,        
+      }
+    })
+  })
+  return NextResponse.json({ success: true, transactionId: transaction.id });
+} catch {
+  return NextResponse.json({ error: "Failed to create transaction" }, { status: 500 });
+}
+
 }
