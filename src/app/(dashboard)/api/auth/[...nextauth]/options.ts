@@ -26,7 +26,7 @@ export const options: NextAuthOptions = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return {
           id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
+          name: `${user.firstName}`,
           email: user.email,
           role: user.role,
           branch: user.branch ?? undefined,

@@ -89,8 +89,8 @@ export const allCurrencyDetailsSchema = z
 // Customer information schema
 export const customerInfoSchema = z.object({
   // Customer Info
-  customerFirstName: z.string().nonempty(),
-  customerLastName: z.string().nonempty(),
+  customerFirstName: z.string().nonempty().max(20),
+  customerLastName: z.string().nonempty().max(20),
 
   customerAddressLine1: z.string().nonempty(),
   customerPostcode: z.string().nonempty(),
@@ -98,7 +98,7 @@ export const customerInfoSchema = z.object({
   customerCountry: z.string().nonempty(),
 
   customerEmail: z.string().email().optional(),
-  customerPhone: z.string().refine((value) => {
+  customerPhone: z.string().max(20).refine((value) => {
     return isValidPhoneNumber(value);
   }).optional(),
 

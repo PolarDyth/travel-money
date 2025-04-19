@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { CurrencyRates } from "@/components/dashboard/currencyRates";
 import { OnlineOrdersList } from "@/components/dashboard/orders";
 import Stats from "@/components/dashboard/stats";
@@ -23,13 +24,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
   return (
     <main>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-gray-500">Welcome back, User!</p>
+          <p className="text-sm text-gray-500">Welcome back, {session?.user.name}!</p>
         </div>
         <Link href={"/transaction"}>
         <Button className="hidden md:inline-flex">

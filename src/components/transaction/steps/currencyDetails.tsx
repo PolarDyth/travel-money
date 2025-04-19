@@ -159,7 +159,7 @@ export default function CurrencyDetailsForm() {
     const lowestDenomination = Math.min(...activeCurrency.denominations);
 
     // Calculate foreign amount and round up
-    let foreignAmount = sterlingAmount * rate;
+    let foreignAmount = Math.round(sterlingAmount * rate);
     foreignAmount = roundUpToNearest(foreignAmount, lowestDenomination);
 
     // Recalculate sterling amount to match rounded foreign
