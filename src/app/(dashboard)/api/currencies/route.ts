@@ -25,7 +25,6 @@ export async function GET() {
       },
     },
   });
-  console.log(list.forEach((currency) => console.log(currency.rates[0])));
   const currencies = list.map((currency) => ({
     code: currency.code,
     name: currency.name,
