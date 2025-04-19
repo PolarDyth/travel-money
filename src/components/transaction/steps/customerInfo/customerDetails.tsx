@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-inpux";
@@ -29,6 +30,7 @@ export default function CustomerDetails() {
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -46,6 +48,7 @@ export default function CustomerDetails() {
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -59,6 +62,7 @@ export default function CustomerDetails() {
             <FormControl>
               <AddressCommandBox />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -76,6 +80,7 @@ export default function CustomerDetails() {
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -89,6 +94,7 @@ export default function CustomerDetails() {
             <FormControl>
               <Input placeholder="Customer City" className="input" {...field} />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -106,6 +112,7 @@ export default function CustomerDetails() {
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -124,6 +131,7 @@ export default function CustomerDetails() {
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -144,6 +152,7 @@ export default function CustomerDetails() {
                 />
               </div>
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />

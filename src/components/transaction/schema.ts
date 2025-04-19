@@ -92,12 +92,12 @@ export const customerInfoSchema = z.object({
   customerFirstName: z.string().nonempty().max(20),
   customerLastName: z.string().nonempty().max(20),
 
-  customerAddressLine1: z.string().nonempty(),
-  customerPostcode: z.string().nonempty(),
-  customerCity: z.string().nonempty(),
-  customerCountry: z.string().nonempty(),
+  customerAddressLine1: z.string().nonempty().max(50),
+  customerPostcode: z.string().nonempty().max(10),
+  customerCity: z.string().nonempty().max(20),
+  customerCountry: z.string().nonempty().max(20),
 
-  customerEmail: z.string().email().optional(),
+  customerEmail: z.string().email().max(50).optional(),
   customerPhone: z.string().max(20).refine((value) => {
     return isValidPhoneNumber(value);
   }).optional(),

@@ -126,6 +126,8 @@ export default function CurrencyDetailsForm() {
       append({ ...current.data, id: uuidv4() });
       activeForm.reset();
       setActiveCurrency(currencies[0]);
+      if (!activeCurrency) throw new Error("No active currency found");
+      activeForm.setValue("exchangeRate", activeCurrency.sellRate)
     }
   };
   // Handler to remove a currency detail item by id
