@@ -97,10 +97,10 @@ export const customerInfoSchema = z.object({
   customerCity: z.string().nonempty().max(20),
   customerCountry: z.string().nonempty().max(20),
 
-  customerEmail: z.string().email().max(50).optional(),
+  customerEmail: z.string().email().max(50).optional().or(z.literal("")),
   customerPhone: z.string().max(20).refine((value) => {
     return isValidPhoneNumber(value);
-  }).optional(),
+  }, { message: "Please enter a valid phone number" }).optional().or(z.literal("")),
 
   primaryId: standardIdSchema.optional(),
   secondaryId: enhancedIdSchema.optional(),
