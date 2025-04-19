@@ -15,18 +15,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  auth,
-  dashboard,
 }: {
   children: React.ReactNode;
-  auth: React.ReactNode;
-  dashboard: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={cn("min-h-screen bg-background antialiased", inter.className)}>
-        {auth}
-        {dashboard}
         {children}
       </body>
     </html>
