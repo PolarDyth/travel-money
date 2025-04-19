@@ -35,18 +35,26 @@ export const options: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = Number(user?.id)
-        session.user.role = user.role;
-        session.user.branch = user.branch;
+        session.user.id = token.id as number;
+        session.user.role = token.role;
+        session.user.branch = token.branch;
       }
       return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id as number;
+        token.role = user.role;
+        token.branch = user.branch;
+      }
+      return token;
     }
   },
   pages: {

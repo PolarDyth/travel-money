@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { validatedTransactionSchema } from "@/lib/transaction/validatedSchema";
 import { NextRequest } from "next/server";
-import { Prisma } from "../../../../generated/prisma";
+import { Prisma } from "../../../../../generated/prisma";
 
 export async function POST(req: NextRequest) {
   const body: TransactionSchema = await req.json();

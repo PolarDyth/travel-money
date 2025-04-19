@@ -1,3 +1,4 @@
+import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 // top of file
@@ -22,9 +23,21 @@ function checkRateLimit(ip: string): boolean {
   return false;
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
+
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   // Example: Only rate limit autocomplete API
-  const pathname = req.nextUrl.pathname;
+  const { pathname } = req.nextUrl;
+  const publicPaths = ["/login", "/unauthorized"];
+
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
+  if (isPublicPath) return NextResponse.next();
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  
 
   if (pathname.startsWith("/api/address/autocomplete")) {
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
@@ -42,9 +55,11 @@ export function middleware(req: NextRequest) {
     }
   }
 
+
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
