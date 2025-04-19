@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { TransactionWithRelations } from "@/app/api/transaction/route";
+import { TransactionWithRelations } from "@/app/(dashboard)/api/transaction/route";
 import { decryptDeterministic, decryptFromString } from "@/lib/encryption";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
