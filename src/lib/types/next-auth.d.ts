@@ -19,7 +19,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: number;
-    role: "ADMIN" | "OPERATOR";
+    role: "ADMIN" | "OPERATOR" | "MANAGER" | "AUDITOR";
     branch?: string;
   }
 }
