@@ -35,6 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { UUIDTypes, v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { useCurrencyContext } from "@/app/context/CurrencyContext";
+import CurrencySkeleton from "@/components/ui/skeletons/transaction/currencySkeleton";
 
 // Default values for the currency detail form
 const defaultSchemaValues = {
@@ -190,7 +191,7 @@ export default function CurrencyDetailsForm() {
   };
 
   // Show loading state while currencies are loading
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <CurrencySkeleton />;
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
 
