@@ -42,9 +42,40 @@ model Customer {
   updatedAt DateTime @updatedAt
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  username  String   @unique
+  password  String // Store as hash
+
+  role      Role     @default(OPERATOR) // Default role is OPERATOR
+  branch    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions     Session[]
+  transactions Transaction[] @relation("OperatorTransactions")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique // JWT or session token
+  expiresAt DateTime // Expiration date for the session
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 model Transaction {
-  id         Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   operatorId Int
+  operator   User @relation("OperatorTransactions", fields: [operatorId], references: [id])
 
   // Relations
   customerId Int
@@ -102,4 +133,11 @@ model Currency {
   thresholdRules  Json?
   rates           ExchangeRate[]   @relation("FxRates")
   currencyDetails CurrencyDetail[]
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  AUDITOR
+  MANAGER
 }
