@@ -13,11 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { decryptDeterministic, decryptFromString } from "@/lib/encryption";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Prisma } from "../../../../../generated/prisma";
-
-type Transaction = Prisma.TransactionGetPayload<{
-  include: { customer: true; currencyDetails: { include: { currency: true } }; operator: true; };
-}>;
+import { getTransactionById } from "@/lib/db/transactionHelpers";
 
 export default async function TransactionSuccessPage({
   searchParams,
@@ -25,16 +21,15 @@ export default async function TransactionSuccessPage({
   searchParams: Promise<{ id?: string }>;}
 ) {
   const { id: transactionId } = await searchParams;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const transaction: Transaction = await fetch(
-    `${baseUrl}/api/transaction/?id=${transactionId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-Request": process.env.INTERNAL_API_SECRET || "",
-      }
+  // Make sure to specify the generic type so TypeScript knows the return type includes the relations
+  const transaction = await getTransactionById({
+    where: { id: Number(transactionId) },
+    include: {
+      customer: true,
+      currencyDetails: { include: { currency: true } },
+      operator: true,
     }
-  ).then((res) => res.json());
+  });
 
   if (!transaction) {
     return <div className="flex justify-center">Transaction not found</div>;
