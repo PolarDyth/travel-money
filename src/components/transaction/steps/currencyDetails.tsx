@@ -70,8 +70,6 @@ export default function CurrencyDetailsForm() {
   const [activeCurrency, setActiveCurrency] = useState<Currency | undefined>(
     undefined
   );
-  
-
 
   // Type for the active currency detail schema
   type activeSchema = z.infer<typeof currencyDetailsSchema>;
@@ -132,7 +130,7 @@ export default function CurrencyDetailsForm() {
       activeForm.reset();
       setActiveCurrency(currencies[0]);
       if (!activeCurrency) throw new Error("No active currency found");
-      activeForm.setValue("exchangeRate", activeCurrency.sellRate)
+      activeForm.setValue("exchangeRate", activeCurrency.sellRate);
     }
   };
   // Handler to remove a currency detail item by id
@@ -197,12 +195,13 @@ export default function CurrencyDetailsForm() {
     activeForm.setValue("foreignAmount", foreignAmount);
   };
 
-
+  useEffect(() => {
+    setValue("allCurrencyDetails.operatorId", Number(session?.user.id));
+  }, [session?.user.id, setValue]);
 
   // Show loading state while currencies are loading
-  if (isLoading || status === ("loading" as typeof status)) return <CurrencySkeleton />;
-
-  setValue("allCurrencyDetails.operatorId", Number(session?.user.id));
+  if (isLoading || status === ("loading" as typeof status))
+    return <CurrencySkeleton />;
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
 
@@ -475,14 +474,13 @@ export default function CurrencyDetailsForm() {
                       {currentTransactionType === "SELL" ? (
                         <span>
                           When selling {activeCurrency?.name}, the customer will
-                          receive{" "}
-                          {activeCurrency?.symbol}
+                          receive {activeCurrency?.symbol}
                           {activeCurrency?.sellRate} for every £1.
                         </span>
                       ) : (
                         <span>
-                          When buying {activeCurrency?.name}, the customer will recieve £1 for
-                          every {activeCurrency?.symbol}
+                          When buying {activeCurrency?.name}, the customer will
+                          recieve £1 for every {activeCurrency?.symbol}
                           {activeCurrency?.buyRate
                             ? (1 / activeCurrency.buyRate).toFixed(4)
                             : "N/A"}
