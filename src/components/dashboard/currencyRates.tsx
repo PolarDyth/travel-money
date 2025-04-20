@@ -8,36 +8,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Currency } from "@/data/currencies";
+import { Prisma } from "../../../generated/prisma";
+import { getCurrencies } from "@/lib/db/currencyHelpers";
+
+type Currencies = Prisma.CurrencyGetPayload<{
+  include: {
+    rates: {
+      where: { baseCode: "GBP" };
+      select: {
+        rate: true;
+        buyRate: true;
+        sellRate: true;
+      };
+    }
+  }
+}>
 
 export async function CurrencyRates() {
-  let currencies: Currency[] = [];
 
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+  const currencyData = await getCurrencies({
+    include: {
+      rates: {
+        where: { baseCode: "GBP" },
+        select: {
+          rate: true,
+          buyRate: true,
+          sellRate: true,
+        },
+      },
+    },
+  })
 
-    const res = await fetch(`${baseUrl}/api/currencies`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-Request": process.env.INTERNAL_API_SECRET || "",
-      }
-    });
-    const data = await res.json();
-    // Ensure data is an array
-    if (Array.isArray(data)) {
-      currencies = data;
-    } else {
-      return <div>No currencies found</div>;
-    }
-  } catch (error) {
-    console.error(error);
-    return <div className="flex justify-center">Error fetching currencies</div>;
-  }
+  const currencies = JSON.parse(JSON.stringify(currencyData));
 
-  if (!currencies.length) {
+  if (!currencies || currencies.length === 0) {
     return <div>No currencies found</div>;
   }
 
@@ -52,7 +56,7 @@ export async function CurrencyRates() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {currencies.map((currency: Currency) => (
+        {currencies.map((currency: Currencies) => (
           <TableRow key={currency.code}>
             <TableCell>
               <div className="font-medium">{currency.code}</div>
@@ -60,8 +64,8 @@ export async function CurrencyRates() {
                 {currency.name}
               </div>
             </TableCell>
-            <TableCell className="text-right">{currency.buyRate}</TableCell>
-            <TableCell className="text-right">{currency.sellRate}</TableCell>
+            <TableCell className="text-right">{currency.rates[0]?.buyRate?.toString()}</TableCell>
+            <TableCell className="text-right">{currency.rates[0]?.sellRate.toString()}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end">
                 <ArrowUp className="h-4 w-4 text-green-500" />

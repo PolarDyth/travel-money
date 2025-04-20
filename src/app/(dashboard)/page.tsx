@@ -1,9 +1,8 @@
-import { auth } from "@/auth";
 import { CurrencyRates } from "@/components/dashboard/currencyRates";
 import { OnlineOrdersList } from "@/components/dashboard/orders";
 import Stats from "@/components/dashboard/stats";
 import StockLevels from "@/components/dashboard/stockLevels";
-import { RecentTransactions } from "@/components/dashboard/transactions";
+import RecentTransactionsServer from "@/components/dashboard/transactionsServer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,8 +12,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CurrencyRatesSkeleton } from "@/components/ui/skeletons/dashboard/ratesSkeleton";
+import { RecentTransSkeleton } from "@/components/ui/skeletons/dashboard/recentTransSkeleton";
+import { WelcomeMessageSkeleton } from "@/components/ui/skeletons/dashboard/welcome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getTransactions } from "@/lib/db/transactionHelpers";
+import { WelcomeMessage } from "@/components/ui/welcomeMessage";
 import {
   ArrowLeftRight,
   ArrowRightLeft,
@@ -26,27 +28,15 @@ import {
 import Link from "next/link";
 import { Suspense } from "react";
 
-export default async function Home() {
-  const session = await auth();
-
-  const data = await getTransactions({
-    operator: { select: { firstName: true, lastName: true } },
-    currencyDetails: { include: { currency: { select: { symbol: true } } } },
-  });
-
-  const transactionData = JSON.parse(JSON.stringify(data));
+export default function Home() {
 
   return (
     <main>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <Suspense
-            fallback={<p className="text-sm text-gray-500">Loading...</p>}
-          >
-            <p className="text-sm text-gray-500">
-              Welcome back, {session?.user.name}!
-            </p>
+          <Suspense fallback={<WelcomeMessageSkeleton />}>
+            <WelcomeMessage />
           </Suspense>
         </div>
         <Link href={"/transaction"}>
@@ -74,9 +64,9 @@ export default async function Home() {
               </TabsList>
               <TabsContent value="transactions" className="mt-4">
                 <Suspense
-                  fallback={<p className="text-sm text-gray-500">Loading...</p>}
+                  fallback={<RecentTransSkeleton />}
                 >
-                  <RecentTransactions transactions={transactionData} />
+                  <RecentTransactionsServer />
                 </Suspense>
               </TabsContent>
               <TabsContent value="orders" className="mt-4">
@@ -96,7 +86,9 @@ export default async function Home() {
             <CardDescription>Today&#39;s exchange rates</CardDescription>
           </CardHeader>
           <CardContent className="px-2">
-            <CurrencyRates />
+            <Suspense fallback={<CurrencyRatesSkeleton />}>
+              <CurrencyRates />
+            </Suspense>
           </CardContent>
           <CardFooter>
             <Button variant="outline" className="w-full">

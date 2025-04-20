@@ -23,110 +23,6 @@ import { useState } from "react";
 import { Prisma } from "../../../generated/prisma";
 import React from "react";
 
-// Updated transaction data structure to support multiple currencies and payment methods
-// const transactions = [
-//   {
-//     id: "TX123456",
-//     timestamp: "Today, 14:32",
-//     operator: "Sarah J.",
-//     totalSterlingAmount: 667.25,
-//     paymentMethods: [
-//       { method: "Card", amount: 167.25, details: "Visa *4242" },
-//       { method: "Cash", amount: 500.0, details: "£520.00 tendered, £20.00 change" },
-//     ],
-//     currencyExchanges: [
-//       {
-//         type: "sell",
-//         currency: "EUR",
-//         sterlingAmount: 431.03,
-//         foreignAmount: 500.12,
-//         rate: 1.16,
-//       },
-//       {
-//         type: "sell",
-//         currency: "USD",
-//         sterlingAmount: 236.22,
-//         foreignAmount: 300.0,
-//         rate: 1.27,
-//       },
-//     ],
-//   },
-//   {
-//     id: "TX123455",
-//     timestamp: "Today, 13:15",
-//     operator: "John D.",
-//     totalSterlingAmount: 78.74,
-//     paymentMethods: [{ method: "Cash", amount: 78.74, details: "£80.00 tendered, £1.26 change" }],
-//     currencyExchanges: [
-//       {
-//         type: "buy",
-//         currency: "USD",
-//         sterlingAmount: 78.74,
-//         foreignAmount: 100.0,
-//         rate: 1.27,
-//       },
-//     ],
-//   },
-//   {
-//     id: "TX123454",
-//     timestamp: "Today, 11:42",
-//     operator: "Emma W.",
-//     totalSterlingAmount: 524.0,
-//     paymentMethods: [{ method: "Card", amount: 524.0, details: "Mastercard *1234" }],
-//     currencyExchanges: [
-//       {
-//         type: "sell",
-//         currency: "JPY",
-//         sterlingAmount: 524.0,
-//         foreignAmount: 100000.0,
-//         rate: 190.84,
-//       },
-//     ],
-//   },
-//   {
-//     id: "TX123453",
-//     timestamp: "Today, 10:17",
-//     operator: "Mike B.",
-//     totalSterlingAmount: 345.72,
-//     paymentMethods: [
-//       { method: "Cash", amount: 200.0, details: "£200.00 tendered, £0.00 change" },
-//       { method: "Card", amount: 145.72, details: "Amex *9876" },
-//     ],
-//     currencyExchanges: [
-//       {
-//         type: "buy",
-//         currency: "EUR",
-//         sterlingAmount: 172.36,
-//         foreignAmount: 200.0,
-//         rate: 1.16,
-//       },
-//       {
-//         type: "buy",
-//         currency: "CHF",
-//         sterlingAmount: 173.36,
-//         foreignAmount: 200.0,
-//         rate: 1.15,
-//       },
-//     ],
-//   },
-//   {
-//     id: "TX123452",
-//     timestamp: "Today, 09:03",
-//     operator: "Lisa T.",
-//     totalSterlingAmount: 104.17,
-//     paymentMethods: [{ method: "Card", amount: 104.17, details: "Visa *5678" }],
-//     currencyExchanges: [
-//       {
-//         type: "sell",
-//         currency: "AUD",
-//         sterlingAmount: 104.17,
-//         foreignAmount: 200.0,
-//         rate: 1.92,
-//       },
-//     ],
-//   },
-// ]
-
 type TransactionWithCurrencyAndRate = Prisma.TransactionGetPayload<{
   include: {
     operator: { select: { firstName: true; lastName: true } };
@@ -148,7 +44,6 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
     }));
   };
 
-  console.log("Transactions:", transactions);
 
   if (!transactions || transactions.length === 0) {
     return (
@@ -214,7 +109,7 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     {Object.entries(JSON.parse(transaction.paymentMethod))
-                      .filter(([, amount]) => Number(amount) > 0)
+                      .filter(([, amount]) => Number(amount) != 0)
                       .map(([method, amount]) => (
                         <Badge
                           key={method + String(amount)}
@@ -226,7 +121,7 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                           ) : (
                             <Banknote className="mr-1 h-3 w-3" />
                           )}
-                          {Number(amount)}
+                          {Number(amount).toFixed(2)}
                         </Badge>
                       ))}
                   </div>
@@ -309,10 +204,8 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                           {Object.entries(
                             JSON.parse(transaction.paymentMethod)
                           ).map(([method, payment]) => {
-                            const paymentNumber = Number(payment);
-                            console.log(payment);
-                            console.log(transaction.totalSterling);
-                            if (paymentNumber > 0) {
+                            const paymentNumber = Number(payment).toFixed(2);
+                            if (payment != 0) {
                               return (
                                 <div
                                   key={method + String(paymentNumber)}

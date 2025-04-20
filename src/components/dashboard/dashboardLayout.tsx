@@ -32,25 +32,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SessionProvider, useSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 interface Props {
   children: React.ReactNode;
+  session: Session | null;
 }
 
-export default function ClientLayout({ children }: Props) {
+export default function ClientLayout({ children, session }: Props) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <LayoutContent>{children}</LayoutContent>
     </SessionProvider>
   );
 }
 
-function LayoutContent({ children }: Props) {
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session } = useSession();
 
   return (
-    <SessionProvider session={session}>
       <div className="flex h-screen overflow-hidden">
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
@@ -190,7 +191,6 @@ function LayoutContent({ children }: Props) {
           <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
         </div>
       </div>
-    </SessionProvider>
   );
 }
 

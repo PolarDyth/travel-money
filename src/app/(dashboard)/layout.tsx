@@ -1,11 +1,13 @@
+import { auth } from "@/auth";
 import ClientLayout from "@/components/dashboard/dashboardLayout";
 
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
   return (
-      <ClientLayout>{children}</ClientLayout>
+      <ClientLayout session={session}>{children}</ClientLayout>
   );
 }
