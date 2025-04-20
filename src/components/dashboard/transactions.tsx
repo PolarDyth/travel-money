@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Prisma } from "../../../generated/prisma";
+import React from "react";
 
 // Updated transaction data structure to support multiple currencies and payment methods
 // const transactions = [
@@ -172,9 +173,8 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
         </TableHeader>
         <TableBody>
           {transactions.map((transaction) => (
-            <>
+            <React.Fragment key={transaction.id}>
               <TableRow
-                key={transaction.id}
                 className={expandedRows[transaction.id] ? "border-b-0" : ""}
               >
                 <TableCell>
@@ -198,10 +198,15 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                 </TableCell>
                 <TableCell className="font-medium">{transaction.id}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {transaction.operator.firstName} {transaction.operator.lastName}
+                  {transaction.operator.firstName}{" "}
+                  {transaction.operator.lastName}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {new Date(transaction.createdAt).toLocaleString()}
+                  {new Date(transaction.createdAt)
+                    .toISOString()
+                    .replace("T", " ")
+                    .slice(0, 16)
+                    .replace(/-/g, "/")}
                 </TableCell>
                 <TableCell className="text-right font-medium">
                   {transaction.totalSterling?.toString()}
@@ -210,15 +215,19 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                   <div className="flex items-center justify-end gap-1">
                     {Object.entries(JSON.parse(transaction.paymentMethod))
                       .filter(([, amount]) => Number(amount) > 0)
-                      .map(([method, amount], index) => (
-                      <Badge key={index} variant="outline" className="ml-1">
-                        {method === "CARD" ? (
-                        <CreditCard className="mr-1 h-3 w-3" />
-                        ) : (
-                        <Banknote className="mr-1 h-3 w-3" />
-                        )}
-                        {Number(amount)}
-                      </Badge>
+                      .map(([method, amount]) => (
+                        <Badge
+                          key={method + String(amount)}
+                          variant="outline"
+                          className="ml-1"
+                        >
+                          {method === "CARD" ? (
+                            <CreditCard className="mr-1 h-3 w-3" />
+                          ) : (
+                            <Banknote className="mr-1 h-3 w-3" />
+                          )}
+                          {Number(amount)}
+                        </Badge>
                       ))}
                   </div>
                 </TableCell>
@@ -235,9 +244,9 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                           Currency Exchanges
                         </h4>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          {transaction.currencyDetails.map((currency, idx) => (
+                          {transaction.currencyDetails.map((currency) => (
                             <div
-                              key={idx}
+                              key={currency.id}
                               className="rounded-md border bg-background p-3"
                             >
                               <div className="flex items-center justify-between">
@@ -297,59 +306,68 @@ export function RecentTransactions({ transactions }: TransactionsProps) {
                           Payment Details
                         </h4>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          {Object.entries(JSON.parse(transaction.paymentMethod)).map(
-                            ([method, payment]) => {
-                              const paymentNumber = Number(payment);
-                              if (paymentNumber > 0) {
-                                return (
-                                  <div
-                                    key={method}
-                                    className="rounded-md border bg-background p-3"
-                                  >
-                                    <div className="flex items-center">
-                                      {method === "CARD" ? (
-                                        <CreditCard className="mr-2 h-4 w-4" />
-                                      ) : (
-                                        <Banknote className="mr-2 h-4 w-4" />
-                                      )}
-                                      <span className="font-medium">{method}</span>
+                          {Object.entries(
+                            JSON.parse(transaction.paymentMethod)
+                          ).map(([method, payment]) => {
+                            const paymentNumber = Number(payment);
+                            console.log(payment);
+                            console.log(transaction.totalSterling);
+                            if (paymentNumber > 0) {
+                              return (
+                                <div
+                                  key={method + String(paymentNumber)}
+                                  className="rounded-md border bg-background p-3"
+                                >
+                                  <div className="flex items-center">
+                                    {method === "CARD" ? (
+                                      <CreditCard className="mr-2 h-4 w-4" />
+                                    ) : (
+                                      <Banknote className="mr-2 h-4 w-4" />
+                                    )}
+                                    <span className="font-medium">
+                                      {method}
+                                    </span>
+                                  </div>
+                                  <div className="mt-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">
+                                        Amount:
+                                      </span>
+                                      <span>{paymentNumber}</span>
                                     </div>
-                                    <div className="mt-2 text-sm">
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">
-                                          Amount:
-                                        </span>
-                                        <span>{paymentNumber}</span>
-                                      </div>
-                                      <div className="text-muted-foreground">
-                                        {Number(transaction.cashTendered) > 0 && (
+                                    <div className="text-muted-foreground">
+                                      {Number(transaction.cashTendered) > 0 &&
+                                        method == "CASH" && (
                                           <>
-                                            {transaction.cashTendered}{" "} tendered,
-                                            {Number(transaction.cashTendered) > 0 && (
+                                            {transaction.cashTendered} tendered,
+                                            {Number(transaction.cashTendered) >
+                                              0 && (
                                               <>
-                                                <br />
                                                 <span>
-                                                  Change: {Number(transaction.cashTendered) - Number(transaction.totalSterling)}
+                                                  {" "}
+                                                  Change:{" "}
+                                                  {Number(
+                                                    transaction.totalSterling
+                                                  ) - Number(payment)}
                                                 </span>
                                               </>
                                             )}
                                           </>
                                         )}
-                                      </div>
                                     </div>
                                   </div>
-                                );
-                              }
-                              return null;
+                                </div>
+                              );
                             }
-                          )}
+                            return null;
+                          })}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                 </TableRow>
               )}
-            </>
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>
