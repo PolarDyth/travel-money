@@ -15,7 +15,6 @@ export async function GET() {
       rates: {
         where: {
           baseCode: "GBP",
-          date: today,
         },
         select: {
           rate: true,
@@ -35,6 +34,5 @@ export async function GET() {
     buyRate: currency.rates[0]?.buyRate ?? null,
     sellRate: currency.rates[0]?.sellRate ?? null,
   }))
-
   return NextResponse.json(currencies)
 }

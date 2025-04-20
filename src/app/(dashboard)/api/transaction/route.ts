@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     const transaction = await prisma.transaction.create({
       data: {
-        operatorId: 1,
+        operatorId: validated.data.allCurrencyDetails.operatorId,
         customerId: customer.id,
         paymentMethod: JSON.stringify(
           validated.data.verification.paymentMethod
@@ -173,9 +173,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    validated.data.allCurrencyDetails.currencyDetails.forEach(
-      async (currency) => {
-        await prisma.currencyDetail.create({
+    await Promise.all(
+      validated.data.allCurrencyDetails.currencyDetails.map((currency) =>
+        prisma.currencyDetail.create({
           data: {
             transactionId: transaction.id,
             currencyCode: currency.currencyCode,
@@ -184,8 +184,8 @@ export async function POST(req: NextRequest) {
             exchangeRate: currency.exchangeRate,
             transactionType: currency.transactionType,
           },
-        });
-      }
+        })
+      )
     );
     return new Response(JSON.stringify({ transactionId: transaction.id }), {
       status: 201,
@@ -193,60 +193,66 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
     });
-  } catch {
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+  } catch (error) {
+      // Log the full error to your server console
+  console.error("Transaction API error:", error);
+
+  // Return the error message in the response (for development)
+  return new Response(
+    JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    }),
+    {
       status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      headers: { "Content-Type": "application/json" },
+    }
+  );
   }
 }
 
 export type TransactionWithRelations = Prisma.TransactionGetPayload<{
-  include: { customer: true; currencyDetails: { include: { currency: true } } };
+  include: { customer: true; currencyDetails: { include: { currency: true } }; operator: true };
 }>;
 
 export async function GET(req: NextRequest) {
-  const searchParams = await req.nextUrl.searchParams;
-  const transactionId = await searchParams.get("id")
+  const searchParams = req.nextUrl.searchParams;
+  const transactionId = searchParams.get("id");
 
-  if (!transactionId) {
-    return new Response(JSON.stringify({ error: "Missing transactionId" }), {
-      status: 400,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
-
-  const transaction: TransactionWithRelations | null = await prisma.transaction.findUnique({
-    where: {
-      id: Number(transactionId),
-    },
-    include: {
-      customer: true,
-      currencyDetails: {
-        include: {
-          currency: true,
-        }
+  if (transactionId) {
+    // Fetch specific transaction
+    const transaction: TransactionWithRelations | null = await prisma.transaction.findUnique({
+      where: { id: Number(transactionId) },
+      include: {
+        customer: true,
+        currencyDetails: { include: { currency: true } },
+        operator: true,
       }
-    }
-  })
+    });
 
-  if (!transaction) {
-    return new Response(JSON.stringify({ error: "Transaction not found" }), {
-      status: 404,
-      headers: {
-        "Content-Type": "application/json",
-      },
+    if (!transaction) {
+      return new Response(JSON.stringify({ error: "Transaction not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify(transaction), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } else {
+    // Fetch all currencies
+    const transactions: TransactionWithRelations[] = await prisma.transaction.findMany({
+      include: {
+        customer: true,
+        currencyDetails: { include: { currency: true } },
+        operator: true,
+      }
+    });
+    return new Response(JSON.stringify(transactions), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   }
-  
-  return new Response(JSON.stringify(transaction), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
 }

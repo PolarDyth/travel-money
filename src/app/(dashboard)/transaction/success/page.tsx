@@ -10,10 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { TransactionWithRelations } from "@/app/(dashboard)/api/transaction/route";
 import { decryptDeterministic, decryptFromString } from "@/lib/encryption";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { Prisma } from "../../../../../generated/prisma";
+
+type Transaction = Prisma.TransactionGetPayload<{
+  include: { customer: true; currencyDetails: { include: { currency: true } }; operator: true; };
+}>;
 
 export default async function TransactionSuccessPage({
   searchParams,
@@ -22,9 +26,19 @@ export default async function TransactionSuccessPage({
 ) {
   const { id: transactionId } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const transaction: TransactionWithRelations = await fetch(
-    `${baseUrl}/api/transaction/?id=${transactionId}`
+  const transaction: Transaction = await fetch(
+    `${baseUrl}/api/transaction/?id=${transactionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Request": process.env.INTERNAL_API_SECRET || "",
+      }
+    }
   ).then((res) => res.json());
+
+  if (!transaction) {
+    return <div className="flex justify-center">Transaction not found</div>;
+  }
 
   return (
     <div className="container mx-auto flex max-w-2xl flex-col items-center justify-center py-8">
@@ -186,11 +200,11 @@ export default async function TransactionSuccessPage({
             <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               <div>
                 <p className="text-muted-foreground">Operator</p>
-                <p>Test for now</p>
+                <p>{transaction.operator.firstName}{" "}{transaction.operator.lastName}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Operator ID</p>
-                <p>1234</p>
+                <p>{transaction.operator.username}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Branch</p>

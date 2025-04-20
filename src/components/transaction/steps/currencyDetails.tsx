@@ -36,6 +36,7 @@ import { UUIDTypes, v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { useCurrencyContext } from "@/app/context/CurrencyContext";
 import CurrencySkeleton from "@/components/ui/skeletons/transaction/currencySkeleton";
+import { useSession } from "next-auth/react";
 
 // Default values for the currency detail form
 const defaultSchemaValues = {
@@ -50,6 +51,8 @@ const defaultSchemaValues = {
 export default function CurrencyDetailsForm() {
   // Get currencies, loading, and error state from context
   const { currencies, isLoading, error } = useCurrencyContext();
+
+  const { data: session, status } = useSession();
 
   if (error) throw new Error("Failed to fetch currencies");
 
@@ -67,6 +70,8 @@ export default function CurrencyDetailsForm() {
   const [activeCurrency, setActiveCurrency] = useState<Currency | undefined>(
     undefined
   );
+  
+
 
   // Type for the active currency detail schema
   type activeSchema = z.infer<typeof currencyDetailsSchema>;
@@ -192,8 +197,12 @@ export default function CurrencyDetailsForm() {
     activeForm.setValue("foreignAmount", foreignAmount);
   };
 
+
+
   // Show loading state while currencies are loading
-  if (isLoading) return <CurrencySkeleton />;
+  if (isLoading || status === ("loading" as typeof status)) return <CurrencySkeleton />;
+
+  setValue("allCurrencyDetails.operatorId", Number(session?.user.id));
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
 

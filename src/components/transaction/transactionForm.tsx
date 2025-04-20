@@ -19,6 +19,7 @@ import CustomerInfo from "./steps/customerInfo";
 import DenomBreakdown from "./steps/denomBreakdown";
 import Verification from "./steps/verification";
 import Confirmation from "./steps/confirmation";
+import { SessionProvider } from "next-auth/react";
 
 const steps = [
   {
@@ -49,7 +50,6 @@ const steps = [
 ];
 
 const TOTAL_STEPS = steps.length;
-
 
 export default function Transaction() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -90,109 +90,114 @@ export default function Transaction() {
 
       const result = await response.json();
       const transactionId = result.transactionId;
-      router.push(`/transaction/success?id=${transactionId}`)
+      router.push(`/transaction/success?id=${transactionId}`);
     } catch {
       throw new Error("Failed to submit transaction");
     }
   });
 
   return (
-    <main className="flex h-screen flex-col w-full max-w-6/7 mx-auto px-4">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-4 py-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => redirect("/")}
-            className="h-8 w-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">New Transaction</h1>
+    <SessionProvider>
+      <main className="flex h-screen flex-col w-full max-w-6/7 mx-auto px-4">
+        <div className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-4 py-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => redirect("/")}
+              className="h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold">New Transaction</h1>
+          </div>
+          <div>
+            <Badge variant={"outline"}>Transaction #1</Badge>
+          </div>
         </div>
-        <div>
-          <Badge variant={"outline"}>Transaction #1</Badge>
+        <div className="mt-6">
+          <div className="mb-2 flex justify-between text-sm">
+            <span>
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <span>{steps[currentStep].name}</span>
+          </div>
+          <Progress value={progressPercentage} className="h-2" />
         </div>
-      </div>
-      <div className="mt-6">
-        <div className="mb-2 flex justify-between text-sm">
-          <span>
-            Step {currentStep + 1} of {steps.length}
-          </span>
-          <span>{steps[currentStep].name}</span>
+        <div className="mt-6 hidden md:block">
+          <div className="flex justify-between">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex flex-col items-center">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
+                    index < currentStep
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : index === currentStep
+                      ? "border-primary bg-background text-primary"
+                      : "border-muted bg-background text-muted-foreground"
+                  }`}
+                >
+                  {index < currentStep ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <span
+                  className={`mt-2 text-xs ${
+                    index <= currentStep
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {step.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <Progress value={progressPercentage} className="h-2" />
-      </div>
-      <div className="mt-6 hidden md:block">
-        <div className="flex justify-between">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex flex-col items-center">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
-                  index < currentStep
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : index === currentStep
-                    ? "border-primary bg-background text-primary"
-                    : "border-muted bg-background text-muted-foreground"
-                }`}
-              >
-                {index < currentStep ? (
-                  <Check className="h-4 w-4" />
+
+        {/* Step Content */}
+        <div className="my-8">
+          <FormProvider {...methods}>
+            <form onSubmit={onSubmit}>
+              {currentStep === 0 && <CurrencyDetailsForm />}
+              {currentStep === 1 && <CustomerInfo />}
+              {currentStep === 2 && <DenomBreakdown />}
+              {currentStep === 3 && <Verification />}
+              {currentStep === 4 && <Confirmation />}
+              <div className="flex items-center justify-between my-6">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Button>
+                {currentStep < steps.length - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      nextStep();
+                    }}
+                  >
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 ) : (
-                  <span>{index + 1}</span>
+                  <Button type="submit">
+                    Complete Transaction
+                    <Check className="ml-2 h-4 w-4" />
+                  </Button>
                 )}
               </div>
-              <span
-                className={`mt-2 text-xs ${
-                  index <= currentStep
-                    ? "font-medium text-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {step.name}
-              </span>
-            </div>
-          ))}
+            </form>
+          </FormProvider>
         </div>
-      </div>
-
-      {/* Step Content */}
-      <div className="my-8">
-        <FormProvider {...methods}>
-          <form onSubmit={onSubmit}>
-            {currentStep === 0 && <CurrencyDetailsForm />}
-            {currentStep === 1 && <CustomerInfo />}
-            {currentStep === 2 && <DenomBreakdown />}
-            {currentStep === 3 && <Verification />}
-            {currentStep === 4 && <Confirmation />}
-            <div className="flex items-center justify-between my-6">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Previous
-              </Button>
-              {currentStep < steps.length - 1 ? (
-                <Button type="button" onClick={(e) => {
-                  e.preventDefault();
-                  nextStep();
-                }}>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button type="submit">
-                  Complete Transaction
-                  <Check className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </form>
-        </FormProvider>
-      </div>
-    </main>
+      </main>
+    </SessionProvider>
   );
 }

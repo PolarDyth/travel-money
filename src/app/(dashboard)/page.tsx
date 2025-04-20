@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getTransactions } from "@/lib/db/transactionHelpers";
 import {
   ArrowLeftRight,
   ArrowRightLeft,
@@ -23,22 +24,37 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default async function Home() {
-  const session = await auth()
+  const session = await auth();
+
+  const data = await getTransactions({
+    operator: { select: { firstName: true, lastName: true } },
+    currencyDetails: { include: { currency: { select: { symbol: true } } } },
+  });
+
+  const transactionData = JSON.parse(JSON.stringify(data));
+
   return (
     <main>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-gray-500">Welcome back, {session?.user.name}!</p>
+          <Suspense
+            fallback={<p className="text-sm text-gray-500">Loading...</p>}
+          >
+            <p className="text-sm text-gray-500">
+              Welcome back, {session?.user.name}!
+            </p>
+          </Suspense>
         </div>
         <Link href={"/transaction"}>
-        <Button className="hidden md:inline-flex">
-          <span className="mr-2 flex items-center gap-4">
-            <ArrowLeftRight /> New Transaction
-          </span>
-        </Button>
+          <Button className="hidden md:inline-flex">
+            <span className="mr-2 flex items-center gap-4">
+              <ArrowLeftRight /> New Transaction
+            </span>
+          </Button>
         </Link>
       </div>
       <Stats />
@@ -57,7 +73,11 @@ export default async function Home() {
                 <TabsTrigger value="orders">Online Orders</TabsTrigger>
               </TabsList>
               <TabsContent value="transactions" className="mt-4">
-                <RecentTransactions />
+                <Suspense
+                  fallback={<p className="text-sm text-gray-500">Loading...</p>}
+                >
+                  <RecentTransactions transactions={transactionData} />
+                </Suspense>
               </TabsContent>
               <TabsContent value="orders" className="mt-4">
                 <OnlineOrdersList />

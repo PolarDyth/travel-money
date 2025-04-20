@@ -1,46 +1,46 @@
-import { ArrowDown, ArrowUp, Minus } from "lucide-react"
+import { ArrowUp } from "lucide-react";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Currency } from "@/data/currencies";
 
-const rates = [
-  {
-    code: "EUR",
-    name: "Euro",
-    buyRate: 1.13,
-    sellRate: 1.21,
-    change: "up",
-  },
-  {
-    code: "USD",
-    name: "US Dollar",
-    buyRate: 1.23,
-    sellRate: 1.31,
-    change: "down",
-  },
-  {
-    code: "JPY",
-    name: "Japanese Yen",
-    buyRate: 184.8,
-    sellRate: 194.1,
-    change: "up",
-  },
-  {
-    code: "AUD",
-    name: "Australian Dollar",
-    buyRate: 1.87,
-    sellRate: 1.97,
-    change: "none",
-  },
-  {
-    code: "CAD",
-    name: "Canadian Dollar",
-    buyRate: 1.67,
-    sellRate: 1.75,
-    change: "down",
-  },
-]
+export async function CurrencyRates() {
+  let currencies: Currency[] = [];
 
-export function CurrencyRates() {
+  try {
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000";
+
+    const res = await fetch(`${baseUrl}/api/currencies`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Request": process.env.INTERNAL_API_SECRET || "",
+      }
+    });
+    const data = await res.json();
+    // Ensure data is an array
+    if (Array.isArray(data)) {
+      currencies = data;
+    } else {
+      return <div>No currencies found</div>;
+    }
+  } catch (error) {
+    console.error(error);
+    return <div className="flex justify-center">Error fetching currencies</div>;
+  }
+
+  if (!currencies.length) {
+    return <div>No currencies found</div>;
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -52,25 +52,24 @@ export function CurrencyRates() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rates.map((rate) => (
-          <TableRow key={rate.code}>
+        {currencies.map((currency: Currency) => (
+          <TableRow key={currency.code}>
             <TableCell>
-              <div className="font-medium">{rate.code}</div>
-              <div className="text-xs text-muted-foreground">{rate.name}</div>
+              <div className="font-medium">{currency.code}</div>
+              <div className="text-xs text-muted-foreground">
+                {currency.name}
+              </div>
             </TableCell>
-            <TableCell className="text-right">{rate.buyRate.toFixed(4)}</TableCell>
-            <TableCell className="text-right">{rate.sellRate.toFixed(4)}</TableCell>
+            <TableCell className="text-right">{currency.buyRate}</TableCell>
+            <TableCell className="text-right">{currency.sellRate}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end">
-                {rate.change === "up" && <ArrowUp className="h-4 w-4 text-green-500" />}
-                {rate.change === "down" && <ArrowDown className="h-4 w-4 text-red-500" />}
-                {rate.change === "none" && <Minus className="h-4 w-4 text-muted-foreground" />}
+                <ArrowUp className="h-4 w-4 text-green-500" />
               </div>
             </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  )
+  );
 }
-

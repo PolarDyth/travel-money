@@ -23,7 +23,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
     "/api/currencies",
     fetcher
   );
-
+  
   return (
     <CurrencyContext.Provider value={{ currencies: data, isLoading, error }}>
       {children}

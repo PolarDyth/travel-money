@@ -47,7 +47,6 @@ export const currencyDetailsSchema = z
     foreignAmount: z.coerce.number().positive(),
     exchangeRate: z.coerce.number().positive(),
     // Operator
-    operatorId: z.number().int().optional(),
   })
   .refine(
     (data) => {
@@ -78,6 +77,7 @@ export const allCurrencyDetailsSchema = z
       .array(currencyDetailsSchema)
       .min(1, "At least one currency detail is required"),
     totalSterling: z.coerce.number().refine((value) => value != 0),
+    operatorId: z.number().int(),
   })
   .superRefine((data) => {
     data.totalSterling = data.currencyDetails.reduce(
@@ -169,6 +169,7 @@ export function getSchemaSteps(step: number): keyof TransactionSchema {
 
 export const defaultTransaction: TransactionSchema = {
   allCurrencyDetails: {
+    operatorId: Infinity,
     currencyDetails: [],
     totalSterling: 0,
   },

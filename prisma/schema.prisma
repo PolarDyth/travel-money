@@ -103,7 +103,7 @@ model CurrencyDetail {
   sterlingAmount  Decimal  @db.Decimal(10, 2)
   foreignAmount   Decimal  @db.Decimal(10, 2)
   exchangeRate    Decimal  @db.Decimal(10, 6)
-  transactionType String
+  transactionType TransactionType
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -140,4 +140,9 @@ enum Role {
   OPERATOR
   AUDITOR
   MANAGER
+}
+
+enum TransactionType {
+  BUY
+  SELL
 }
