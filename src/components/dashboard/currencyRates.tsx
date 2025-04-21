@@ -113,7 +113,7 @@ export async function CurrencyRates() {
           <TableHead className="text-right">We Buy</TableHead>
           <TableHead className="text-right">We Sell</TableHead>
           <TableHead className="text-right">Change</TableHead>
-          <TableHead className="text-right">Last Updated</TableHead>{" "}
+          <TableHead className="text-right">Last Updated</TableHead>
           {/* New column */}
         </TableRow>
       </TableHeader>

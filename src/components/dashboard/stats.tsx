@@ -99,6 +99,7 @@ const purchasesChange = yesterdayPurchases
   ? ((uniqueCustomersToday - yesterdayUniqueCustomers) / yesterdayUniqueCustomers) * 100
   : 0;
 
+
   const stats = [
     {
       title: "Today's Sales",
@@ -126,7 +127,7 @@ const purchasesChange = yesterdayPurchases
       icon: <Users className="h-4 w-4" />,
       value: `${uniqueCustomersToday}`, // Replace with live data if available
       trend: customersChange >= 0 ? "up" : "down",
-      percentage: 9,
+      percentage: Math.abs(Number(customersChange.toFixed(1))),
     },
   ];
   return (
