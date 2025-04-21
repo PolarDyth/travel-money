@@ -35,6 +35,11 @@ export async function middleware(req: NextRequest) {
   if (isPublicPath || isAuthApi) {
     return NextResponse.next();
   }
+  
+  const isInternalCron = await isCron(req);
+  if (isInternalCron) {
+    return NextResponse.next();
+  }
 
   // Protect all other API endpoints
   if (pathname.startsWith("/api") && !token) {
@@ -43,6 +48,8 @@ export async function middleware(req: NextRequest) {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+
 
   // Redirect unauthenticated users trying to access protected pages
   if (!token) {
@@ -63,6 +70,29 @@ export async function middleware(req: NextRequest) {
 
   return NextResponse.next();
 }
+
+async function isCron(req: NextRequest) {
+  const secret = req.headers.get("x-cron-secret");
+  console.log("Secret:", secret);
+  if (!secret) {
+    return new NextResponse(JSON.stringify({ error: "No secret provided" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (secret !== process.env.CRON_SECRET) {
+    return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  console.log("Cron job triggered");
+
+  return true;
+}
+
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico).*)",
