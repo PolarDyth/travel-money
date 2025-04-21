@@ -188,7 +188,6 @@ export default function CurrencyDetailsForm() {
 
     // Round up to nearest denomination
     foreignAmount = roundUpToNearest(foreignAmount, lowestDenomination);
-
     // Calculate sterling amount
     const sterlingAmount = parseFloat((foreignAmount / rate).toFixed(2));
     activeForm.setValue("sterlingAmount", sterlingAmount);

@@ -36,11 +36,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   
+  if (pathname.startsWith("/api/cron")) {
+
   const isInternalCron = await isCron(req);
   if (isInternalCron) {
     return NextResponse.next();
   }
-
+  }
   // Protect all other API endpoints
   if (pathname.startsWith("/api") && !token) {
     return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
