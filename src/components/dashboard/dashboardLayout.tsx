@@ -31,7 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
 import { Session } from "next-auth";
 
 interface Props {
@@ -153,7 +153,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
               <div className="flex items-center space-x-2 lg:ml-auto">
                 <p className="mr-2 hidden text-sm font-medium lg:block">
-                  {session?.user?.name}
+                  {session?.user?.name}{" "}{session?.user?.lastName}
                 </p>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -177,7 +177,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => signOut()}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>

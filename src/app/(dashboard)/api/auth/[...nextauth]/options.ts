@@ -27,6 +27,7 @@ export const options: NextAuthOptions = {
         return {
           id: user.id,
           name: `${user.firstName}`,
+          lastName: user.lastName,
           email: user.email,
           role: user.role,
           branch: user.branch ?? undefined,
@@ -43,6 +44,7 @@ export const options: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as number;
+        session.user.lastName = token.lastName;
         session.user.role = token.role;
         session.user.branch = token.branch;
       }
@@ -51,6 +53,7 @@ export const options: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as number;
+        token.lastName = user.lastName;
         token.role = user.role;
         token.branch = user.branch;
       }
