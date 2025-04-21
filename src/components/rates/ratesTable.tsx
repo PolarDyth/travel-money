@@ -1,18 +1,19 @@
 "use client"
 
-import { ArrowDown, ArrowUp, ChevronRight, Minus } from "lucide-react"
+import { ArrowDown, ArrowUp, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useRatesContext } from "@/app/(dashboard)/rates/context/RatesContext"
 import { Currencies } from "@/lib/types/currency/type"
 import { useCurrencyContext } from "@/app/(dashboard)/transaction/context/CurrencyContext"
 
 export function RatesTable() {
-  const { searchQuery, regionFilter, sortBy, setSortBy, sortOrder, setSortOrder, activeTab } = useRatesContext()
+  const { searchQuery, regionFilter, sortBy, setSortBy, sortOrder, setSortOrder } = useRatesContext()
 
-  const { currencies: data, error } = useCurrencyContext();
+  const { currencies: data, error, isLoading } = useCurrencyContext();
+
+  if (isLoading) return <div className="h-24 animate-pulse bg-muted rounded-md" />
 
   const currencies = JSON.parse(JSON.stringify(data));
 
@@ -62,8 +63,6 @@ export function RatesTable() {
   }
 
   return (
-    <Tabs value={activeTab}>
-      <TabsContent value="all" className="m-0">
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -82,12 +81,12 @@ export function RatesTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedCurrencies.map((currency) => (
+              {sortedCurrencies.map((currency: Currencies) => (
                 <TableRow key={currency.code} className="group cursor-pointer hover:bg-muted/50">
                   <TableCell>
                     <Link href={`/rates/${currency.code}`} className="flex items-center gap-2">
                       <span className="text-xl" aria-hidden="true">
-                        {currency.flag}
+                        {currency.code}
                       </span>
                       <div>
                         <div className="font-medium">{currency.code}</div>
@@ -95,13 +94,10 @@ export function RatesTable() {
                       </div>
                     </Link>
                   </TableCell>
-                  <TableCell className="text-right">{currency.buyRate.toFixed(4)}</TableCell>
-                  <TableCell className="text-right">{currency.sellRate.toFixed(4)}</TableCell>
+                  <TableCell className="text-right">{Number(currency.rates[0].buyRate)}</TableCell>
+                  <TableCell className="text-right">{Number(currency.rates[0].sellRate)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end">
-                      {currency.change === "up" && <ArrowUp className="h-4 w-4 text-green-500" />}
-                      {currency.change === "down" && <ArrowDown className="h-4 w-4 text-red-500" />}
-                      {currency.change === "none" && <Minus className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -124,59 +120,5 @@ export function RatesTable() {
             </TableBody>
           </Table>
         </div>
-      </TabsContent>
-
-      <TabsContent value="popular" className="m-0">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[250px]">Currency</TableHead>
-                <TableHead className="text-right">We Buy</TableHead>
-                <TableHead className="text-right">We Sell</TableHead>
-                <TableHead className="text-right">Change</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedCurrencies
-                .filter((currency) => currency.popular)
-                .map((currency) => (
-                  <TableRow key={currency.code} className="group cursor-pointer hover:bg-muted/50">
-                    <TableCell>
-                      <Link href={`/rates/${currency.code}`} className="flex items-center gap-2">
-                        <span className="text-xl" aria-hidden="true">
-                          {currency.flag}
-                        </span>
-                        <div>
-                          <div className="font-medium">{currency.code}</div>
-                          <div className="text-xs text-muted-foreground">{currency.name}</div>
-                        </div>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-right">{currency.buyRate.toFixed(4)}</TableCell>
-                    <TableCell className="text-right">{currency.sellRate.toFixed(4)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end">
-                        {currency.change === "up" && <ArrowUp className="h-4 w-4 text-green-500" />}
-                        {currency.change === "down" && <ArrowDown className="h-4 w-4 text-red-500" />}
-                        {currency.change === "none" && <Minus className="h-4 w-4 text-muted-foreground" />}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/rates/${currency.code}`}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </div>
-      </TabsContent>
-    </Tabs>
   )
 }

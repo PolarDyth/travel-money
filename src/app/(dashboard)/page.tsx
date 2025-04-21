@@ -91,8 +91,10 @@ export default function Home() {
             </Suspense>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href={"/rates"}>
               View All Rates
+              </Link>
             </Button>
           </CardFooter>
         </Card>

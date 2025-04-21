@@ -11,8 +11,6 @@ interface RatesContextType {
   setSortBy: (column: string) => void
   sortOrder: "asc" | "desc"
   setSortOrder: (order: "asc" | "desc") => void
-  activeTab: string
-  setActiveTab: (tab: string) => void
 }
 
 const RatesContext = createContext<RatesContextType | undefined>(undefined)
@@ -22,7 +20,6 @@ export function RatesProvider({ children }: { children: ReactNode }) {
   const [regionFilter, setRegionFilter] = useState("all")
   const [sortBy, setSortBy] = useState("code")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-  const [activeTab, setActiveTab] = useState("all")
 
   return (
     <RatesContext.Provider
@@ -35,8 +32,6 @@ export function RatesProvider({ children }: { children: ReactNode }) {
         setSortBy,
         sortOrder,
         setSortOrder,
-        activeTab,
-        setActiveTab,
       }}
     >
       {children}
