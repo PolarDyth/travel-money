@@ -26,15 +26,5 @@ export async function GET() {
     },
   });
 
-  const currencies = list.map((currency) => ({
-    code: currency.code,
-    name: currency.name,
-    symbol: currency.symbol,
-    denominations: currency.denominations,
-    thresholdRules: currency.thresholdRules,
-    rate: currency.rates[0]?.rate ?? null,
-    buyRate: currency.rates[0]?.buyRate ?? null,
-    sellRate: currency.rates[0]?.sellRate ?? null,
-  }))
-  return NextResponse.json(currencies)
+  return NextResponse.json(list)
 }

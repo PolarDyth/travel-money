@@ -131,6 +131,9 @@ model Currency {
   code            String           @id @db.Char(3)
   name            String
   symbol          String
+  country         String?
+  region          String?
+  description     String?
   denominations   Int[]
   thresholdRules  Json?
   rates           ExchangeRate[]   @relation("FxRates")

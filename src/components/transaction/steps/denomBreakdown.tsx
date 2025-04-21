@@ -17,10 +17,13 @@ import { calculateDenomThreshold } from "@/lib/utils";
 import { FormControl } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useMemo } from "react";
-import { useCurrencyContext } from "@/app/context/CurrencyContext";
+import { useCurrencyContext } from "@/app/(dashboard)/transaction/context/CurrencyContext";
+import { Currencies } from "@/lib/types/currency/type";
 
 export default function DenomBreakdown() {
-  const { currencies, error } = useCurrencyContext();
+  const { currencies: data, error } = useCurrencyContext();
+
+  const currencies = JSON.parse(JSON.stringify(data));
 
   if (error) throw new Error("Failed to fetch currencies");
 
@@ -34,8 +37,14 @@ export default function DenomBreakdown() {
   useEffect(() => {
     transactionItems.forEach((item, index) => {
       const currency =
-        currencies?.find((c) => c.code === item.currencyCode) ?? currencies![0];
-      const thresholds = calculateDenomThreshold(currency);
+        currencies?.find((c: Currencies) => c.code === item.currencyCode) ?? currencies![0];
+      const thresholds = calculateDenomThreshold({
+        ...currency,
+        rate: currency.rates?.[0]?.rate ?? 1,
+        buyRate: currency.rates?.[0]?.buyRate ?? 1,
+        sellRate: currency.rates?.[0]?.sellRate ?? 1,
+        thresholdRule: currency.thresholdRules,
+      });
       const split = getEvenlySplitDenominations(
         item.foreignAmount,
         currency.denominations,
@@ -160,8 +169,8 @@ export default function DenomBreakdown() {
               </TabsList>
 
               {transactionItems.map((item, index) => {
-                const currency =
-                  currencies?.find((c) => c.code === item.currencyCode) ??
+                const currency: Currencies =
+                  currencies?.find((c: Currencies) => c.code === item.currencyCode) ??
                   currencies![0];
                 const thresholds = calculateDenomThreshold(currency);
                 const split = getEvenlySplitDenominations(
@@ -192,7 +201,7 @@ export default function DenomBreakdown() {
                       </div>
 
                       <div className="space-y-4">
-                        {currency.denominations.map((denom) => {
+                        {currency.denominations.map((denom: number) => {
                           return (
                             <div
                               key={denom}

@@ -28,11 +28,13 @@ import {
 import { Check, FileText, Receipt } from "lucide-react";
 import { TransactionSchema } from "../schema";
 import { useFormContext } from "react-hook-form";
-import { useCurrencyContext } from "@/app/context/CurrencyContext";
+import { useCurrencyContext } from "@/app/(dashboard)/transaction/context/CurrencyContext";
+import { Currencies } from "@/lib/types/currency/type";
 
 export default function Confirmation() {
+  const { currencies: data, error, isLoading } = useCurrencyContext();
 
-  const { currencies, error } = useCurrencyContext();
+  const currencies = JSON.parse(JSON.stringify(data));
 
   if (error) throw new Error(error.message);
   const { watch } = useFormContext<TransactionSchema>();
@@ -45,6 +47,16 @@ export default function Confirmation() {
     CARD: totalSterling,
   };
   const tenderedCash = watch("verification.cashTendered") ?? 0;
+
+  if (isLoading) return <p>Loading...</p>;
+
+  if (!currencies) return <p>No currencies available</p>;
+  if (currencies.length === 0) return <p>No currencies found</p>;
+
+  if (currencies) {
+    console.log("currenciessada:", currencies[0].rates[0]);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -103,7 +115,8 @@ export default function Confirmation() {
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Customer</span>
                 <span className="font-medium">
-                  {customerInfo.customerFirstName} {customerInfo.customerLastName}
+                  {customerInfo.customerFirstName}{" "}
+                  {customerInfo.customerLastName}
                 </span>
               </div>
               <Separator />
@@ -120,14 +133,16 @@ export default function Confirmation() {
                 <TableBody>
                   {transactionItems.map((item) => {
                     const currency = currencies?.find(
-                      (c) => c.code === item.currencyCode
+                      (c: Currencies) => c.code === item.currencyCode
                     );
                     return (
                       <TableRow key={item.id}>
                         <TableCell>
                           <Badge
                             variant={
-                              item.transactionType === "SELL" ? "outline" : "secondary"
+                              item.transactionType === "SELL"
+                                ? "outline"
+                                : "secondary"
                             }
                           >
                             {item.transactionType === "SELL" ? "Sell" : "Buy"}
@@ -167,13 +182,17 @@ export default function Confirmation() {
                   {(paymentMethods.CASH ?? 0) > 0 && (
                     <div className="text-right">
                       <span className="font-medium">
-                        Cash: £{(paymentMethods.CASH?.toFixed(2) ?? 0)}
+                        Cash: £{paymentMethods.CASH?.toFixed(2) ?? 0}
                       </span>
                       {tenderedCash > (paymentMethods.CASH ?? 0) && (
                         <div className="text-sm text-muted-foreground">
                           Tendered: £{tenderedCash.toFixed(2)}
                           <br />
-                          Change: £{(Number(tenderedCash.toFixed(2)) - Number(paymentMethods.CASH?.toFixed(2))).toFixed(2)}
+                          Change: £
+                          {(
+                            Number(tenderedCash.toFixed(2)) -
+                            Number(paymentMethods.CASH?.toFixed(2))
+                          ).toFixed(2)}
                         </div>
                       )}
                     </div>
@@ -237,15 +256,20 @@ export default function Confirmation() {
                     <div className="flex justify-between">
                       <span>Customer:</span>
                       <span>
-                        {customerInfo.customerFirstName} {customerInfo.customerLastName}
+                        {customerInfo.customerFirstName}{" "}
+                        {customerInfo.customerLastName}
                       </span>
                     </div>
                     <Separator className="my-2" />
 
                     {transactionItems.map((item, index) => {
                       const currency = currencies?.find(
-                        (c) => c.code === item.currencyCode
+                        (c: Currencies) => c.code === item.currencyCode
                       );
+                      const sellRate = currency?.rates?.[0]?.sellRate;
+                      const buyRate = currency?.rates?.[0]?.buyRate;
+
+                      console.log("sellRate", sellRate);
                       return (
                         <div key={item.id} className="space-y-1">
                           <div className="flex justify-between font-medium">
@@ -259,12 +283,10 @@ export default function Confirmation() {
                             <span>Exchange Rate:</span>
                             <span>
                               {item.transactionType === "SELL"
-                                ? `£1 = ${
-                                    currency?.symbol
-                                  }${currency?.sellRate}`
-                                : `${currency?.symbol}1 = £${(
-                                    1 / (currency?.buyRate ?? 0)
-                                  )}`}
+                                  ? `£1 = ${currency?.symbol}${sellRate}`
+                                :  `${currency?.symbol}1 = £${(
+                                    1 / buyRate
+                                  ).toFixed(4)}`}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -310,7 +332,12 @@ export default function Confirmation() {
                       {tenderedCash > (paymentMethods.CASH ?? 0) && (
                         <div className="flex justify-between">
                           <span>Change Given:</span>
-                          <span>£{(tenderedCash - (paymentMethods.CASH ?? 0)).toFixed(2)}</span>
+                          <span>
+                            £
+                            {(
+                              tenderedCash - (paymentMethods.CASH ?? 0)
+                            ).toFixed(2)}
+                          </span>
                         </div>
                       )}
                     </div>

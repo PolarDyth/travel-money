@@ -1,6 +1,15 @@
-import { Currency } from "@/data/currencies";
-import { SWRResponse } from "swr";
+import { Prisma } from "../../../../generated/prisma";
 
-export interface SWRCurrency {
-  currenciesSWR: SWRResponse<Currency[], Error>;
-}
+export type Currencies = Prisma.CurrencyGetPayload<{
+  include: {
+    rates: {
+      where: { baseCode: "GBP" };
+      select: {
+        rate: true;
+        buyRate: true;
+        sellRate: true;
+        fetchedAt: true;
+      };
+    };
+  };
+}>;

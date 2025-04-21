@@ -1,11 +1,11 @@
 "use client";
 
-import { Currency } from "@/data/currencies";
+import { Currencies } from "@/lib/types/currency/type";
 import { createContext, useContext } from "react";
 import useSWR from "swr";
 
 type CurrencyContextType = {
-  currencies: Currency[] | undefined;
+  currencies: Currencies[] | undefined;
   isLoading: boolean;
   error: Error | undefined;
 };
@@ -19,10 +19,13 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { data, isLoading, error } = useSWR<Currency[], Error>(
+  const { data, isLoading, error } = useSWR<Currencies[], Error>(
     "/api/currencies",
     fetcher
   );
+
+  console.log("CurrencyProvider data:", data);
+  
   
   return (
     <CurrencyContext.Provider value={{ currencies: data, isLoading, error }}>
