@@ -50,7 +50,7 @@ export default function ClientLayout({ children, session }: Props) {
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session } = useSession();
-
+  
   return (
       <div className="flex h-screen overflow-hidden">
         {/* Mobile sidebar backdrop */}

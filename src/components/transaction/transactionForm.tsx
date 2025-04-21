@@ -19,7 +19,7 @@ import CustomerInfo from "./steps/customerInfo";
 import DenomBreakdown from "./steps/denomBreakdown";
 import Verification from "./steps/verification";
 import Confirmation from "./steps/confirmation";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 
 const steps = [
   {
@@ -55,6 +55,8 @@ export default function Transaction() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const router = useRouter();
+
+  const { data: session, status } = useSession();
 
   const methods = useForm<TransactionSchema>({
     mode: "onTouched",
@@ -95,6 +97,14 @@ export default function Transaction() {
       throw new Error("Failed to submit transaction");
     }
   });
+
+  if (status === "unauthenticated") {
+    redirect("/login");
+  } else if (status === "loading") {
+    return <div>Loading...</div>;
+  } 
+
+  methods.setValue("allCurrencyDetails.operatorId", Number(session?.user?.id));
 
   return (
     <SessionProvider>

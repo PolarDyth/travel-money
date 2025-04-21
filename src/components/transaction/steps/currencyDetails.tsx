@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -36,7 +36,6 @@ import { UUIDTypes, v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { useCurrencyContext } from "@/app/context/CurrencyContext";
 import CurrencySkeleton from "@/components/ui/skeletons/transaction/currencySkeleton";
-import { useSession } from "next-auth/react";
 
 // Default values for the currency detail form
 const defaultSchemaValues = {
@@ -51,8 +50,6 @@ const defaultSchemaValues = {
 export default function CurrencyDetailsForm() {
   // Get currencies, loading, and error state from context
   const { currencies, isLoading, error } = useCurrencyContext();
-
-  const { data: session, status } = useSession();
 
   if (error) throw new Error("Failed to fetch currencies");
 
@@ -194,13 +191,11 @@ export default function CurrencyDetailsForm() {
     activeForm.setValue("foreignAmount", foreignAmount);
   };
 
-  useEffect(() => {
-    setValue("allCurrencyDetails.operatorId", Number(session?.user.id));
-  }, [session?.user.id, setValue]);
-
   // Show loading state while currencies are loading
-  if (isLoading || status === ("loading" as typeof status))
+  if (isLoading )
     return <CurrencySkeleton />;
+
+
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
 
@@ -534,7 +529,6 @@ export default function CurrencyDetailsForm() {
               </p>
             </div>
           ) : (
-            <Suspense fallback={<div>Loading...</div>}>
               <div className="space-y-4">
                 {fields.map((item, idx) => {
                   const currency =
@@ -630,7 +624,6 @@ export default function CurrencyDetailsForm() {
                   </AlertDescription>
                 </Alert>
               </div>
-            </Suspense>
           )}
         </CardContent>
       </Card>
