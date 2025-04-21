@@ -52,7 +52,6 @@ export default function CurrencyDetailsForm() {
   const { currencies: data, isLoading, error } = useCurrencyContext();
 
   console.log("Currency data:", data);
-  
 
   if (error) throw new Error("Failed to fetch currencies");
 
@@ -101,7 +100,7 @@ export default function CurrencyDetailsForm() {
       .filter((currency) => currency.transactionType === "SELL")
       .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
 
-    console.log("Total Bought", totalBought); 
+    console.log("Total Bought", totalBought);
     console.log("Total Sold", totalSold);
 
     setValue("allCurrencyDetails.totalBought", totalBought);
@@ -149,7 +148,10 @@ export default function CurrencyDetailsForm() {
       activeForm.reset();
       setActiveCurrency(currencies[0]);
       if (!activeCurrency) throw new Error("No active currency found");
-      activeForm.setValue("exchangeRate", Number(activeCurrency.rates[0].sellRate));
+      activeForm.setValue(
+        "exchangeRate",
+        Number(activeCurrency.rates[0].sellRate)
+      );
     }
   };
   // Handler to remove a currency detail item by id
@@ -165,7 +167,9 @@ export default function CurrencyDetailsForm() {
     currency: Currencies,
     transactionType: string
   ) => {
-    return transactionType === "BUY" ? currency.rates[0].buyRate : currency.rates[0].sellRate;
+    return transactionType === "BUY"
+      ? currency.rates[0].buyRate
+      : currency.rates[0].sellRate;
   };
 
   // Handle changes to the sterling amount input
@@ -216,7 +220,6 @@ export default function CurrencyDetailsForm() {
   // Show loading state while currencies are loading
   if (isLoading) return <CurrencySkeleton />;
 
-  
   const currencies = JSON.parse(JSON.stringify(data));
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
@@ -245,8 +248,9 @@ export default function CurrencyDetailsForm() {
                         onValueChange={(value) => {
                           field.onChange(value);
                           const selectedCurrency =
-                            currencies!.find((c: Currencies) => c.code === value) ||
-                            currencies![0];
+                            currencies!.find(
+                              (c: Currencies) => c.code === value
+                            ) || currencies![0];
                           setActiveCurrency(selectedCurrency);
                           activeForm.setValue("currencyCode", value);
 
@@ -255,10 +259,12 @@ export default function CurrencyDetailsForm() {
 
                           activeForm.setValue(
                             "exchangeRate",
-                            Number(calculateExchangeRate(
-                              selectedCurrency,
-                              currentTransactionType
-                            ))
+                            Number(
+                              calculateExchangeRate(
+                                selectedCurrency,
+                                currentTransactionType
+                              )
+                            )
                           );
                         }}
                       >
@@ -270,14 +276,16 @@ export default function CurrencyDetailsForm() {
                                   <span>
                                     {
                                       currencies!.find(
-                                        (c: Currencies) => c.code === field.value
+                                        (c: Currencies) =>
+                                          c.code === field.value
                                       )?.name
                                     }
                                   </span>
                                   <span>
                                     {
                                       currencies!.find(
-                                        (c: Currencies) => c.code === field.value
+                                        (c: Currencies) =>
+                                          c.code === field.value
                                       )?.code
                                     }
                                   </span>
@@ -370,6 +378,7 @@ export default function CurrencyDetailsForm() {
                           type="number"
                           placeholder="0.00"
                           className="pl-10 input"
+                          max="20000"
                           {...field}
                           disabled={currentTransactionType === "BUY"}
                           onBlur={handleSterlingChange}
@@ -395,30 +404,33 @@ export default function CurrencyDetailsForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Amount in {activeCurrency?.code}</FormLabel>
-                    <div className="relative">
-                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 self-center text-muted-foreground">
-                        {
-                          currencies!.find(
-                            (c: Currencies) => c.code === activeCurrency?.code
-                          )?.symbol
-                        }
-                      </div>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        className="pl-10 input"
-                        {...field}
-                        onBlur={handleForeignChange}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleForeignChange(
-                              e as unknown as React.ChangeEvent<HTMLInputElement>
-                            );
+
+                    <FormControl>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 self-center text-muted-foreground">
+                          {
+                            currencies!.find(
+                              (c: Currencies) => c.code === activeCurrency?.code
+                            )?.symbol
                           }
-                        }}
-                      />
-                    </div>
+                        </div>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          className="pl-10 input"
+                          {...field}
+                          onBlur={handleForeignChange}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleForeignChange(
+                                e as unknown as React.ChangeEvent<HTMLInputElement>
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -468,7 +480,9 @@ export default function CurrencyDetailsForm() {
                       <p className="text-lg font-medium">
                         {activeCurrency?.symbol}1 = £
                         {Number(activeCurrency?.rates[0].buyRate)
-                          ? (1 / Number(activeCurrency?.rates[0].buyRate)).toFixed(4)
+                          ? (
+                              1 / Number(activeCurrency?.rates[0].buyRate)
+                            ).toFixed(4)
                           : "N/A"}
                       </p>
                     </div>
@@ -491,14 +505,17 @@ export default function CurrencyDetailsForm() {
                         <span>
                           When selling {activeCurrency?.name}, the customer will
                           receive {activeCurrency?.symbol}
-                          {Number(activeCurrency?.rates[0].sellRate)} for every £1.
+                          {Number(activeCurrency?.rates[0].sellRate)} for every
+                          £1.
                         </span>
                       ) : (
                         <span>
                           When buying {activeCurrency?.name}, the customer will
                           recieve £1 for every {activeCurrency?.symbol}
                           {Number(activeCurrency?.rates[0].buyRate)
-                            ? (1 / Number(activeCurrency?.rates[0].buyRate)).toFixed(4)
+                            ? (
+                                1 / Number(activeCurrency?.rates[0].buyRate)
+                              ).toFixed(4)
                             : "N/A"}
                           .
                         </span>
@@ -554,8 +571,9 @@ export default function CurrencyDetailsForm() {
             <div className="space-y-4">
               {fields.map((item, idx) => {
                 const currency =
-                  currencies!.find((c: Currencies) => c.code === item.currencyCode) ||
-                  currencies![0];
+                  currencies!.find(
+                    (c: Currencies) => c.code === item.currencyCode
+                  ) || currencies![0];
                 return (
                   <div key={idx} className="rounded-md border p-3">
                     <div className="mb-2 flex items-center justify-between">

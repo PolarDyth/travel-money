@@ -53,6 +53,8 @@ const TOTAL_STEPS = steps.length;
 
 export default function Transaction() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -77,6 +79,8 @@ export default function Transaction() {
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
 
   const onSubmit = methods.handleSubmit(async (data: TransactionSchema) => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch("/api/transaction", {
         method: "POST",
@@ -93,8 +97,15 @@ export default function Transaction() {
       const result = await response.json();
       const transactionId = result.transactionId;
       router.push(`/transaction/success?id=${transactionId}`);
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to submit transaction");
+      }
       throw new Error("Failed to submit transaction");
+    } finally {
+      setIsLoading(false);
     }
   });
 
@@ -102,7 +113,7 @@ export default function Transaction() {
     redirect("/login");
   } else if (status === "loading") {
     return <div>Loading...</div>;
-  } 
+  }
 
   methods.setValue("allCurrencyDetails.operatorId", Number(session?.user?.id));
 
@@ -198,10 +209,15 @@ export default function Transaction() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button type="submit">
-                    Complete Transaction
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Submitting..." : "Complete Transaction"}
                     <Check className="ml-2 h-4 w-4" />
                   </Button>
+                )}
+                {error && (
+                  <div className="mb-4 rounded bg-red-100 px-4 py-2 text-red-700 border border-red-300">
+                    {error}
+                  </div>
                 )}
               </div>
             </form>

@@ -43,7 +43,7 @@ export const currencyDetailsSchema = z
     id: z.string().uuid(),
     transactionType: z.enum(["SELL", "BUY"]),
     currencyCode: z.string().length(3).toUpperCase(),
-    sterlingAmount: z.coerce.number(),
+    sterlingAmount: z.coerce.number().max(20000),
     foreignAmount: z.coerce.number().positive(),
     exchangeRate: z.coerce.number().positive(),
     // Operator
@@ -76,7 +76,7 @@ export const allCurrencyDetailsSchema = z
     currencyDetails: z
       .array(currencyDetailsSchema)
       .min(1, "At least one currency detail is required"),
-    totalSterling: z.coerce.number().refine((value) => value != 0),
+    totalSterling: z.coerce.number().max(20000).refine((value) => value != 0),
     totalBought: z.coerce.number().refine((value) => value >= 0),
     totalSold: z.coerce.number().refine((value) => value >= 0),
     operatorId: z.number().int(),
