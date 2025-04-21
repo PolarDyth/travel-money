@@ -77,6 +77,8 @@ export const allCurrencyDetailsSchema = z
       .array(currencyDetailsSchema)
       .min(1, "At least one currency detail is required"),
     totalSterling: z.coerce.number().refine((value) => value != 0),
+    totalBought: z.coerce.number().refine((value) => value >= 0),
+    totalSold: z.coerce.number().refine((value) => value >= 0),
     operatorId: z.number().int(),
   })
   .superRefine((data) => {
@@ -84,6 +86,14 @@ export const allCurrencyDetailsSchema = z
       (sum, currency) => sum + currency.sterlingAmount,
       0
     );
+
+    data.totalBought = data.currencyDetails
+      .filter((currency) => currency.transactionType === "BUY")
+      .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
+
+    data.totalSold = data.currencyDetails
+      .filter((currency) => currency.transactionType === "SELL")
+      .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
   });
 
 // Customer information schema
@@ -172,6 +182,8 @@ export const defaultTransaction: TransactionSchema = {
     operatorId: Infinity,
     currencyDetails: [],
     totalSterling: 0,
+    totalBought: 0,
+    totalSold: 0,
   },
   customerInfo: {
     customerFirstName: "",

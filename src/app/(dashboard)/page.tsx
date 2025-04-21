@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { CurrencyRatesSkeleton } from "@/components/ui/skeletons/dashboard/ratesSkeleton";
 import { RecentTransSkeleton } from "@/components/ui/skeletons/dashboard/recentTransSkeleton";
+import { StatsSkeleton } from "@/components/ui/skeletons/dashboard/statsSkeleton";
 import { WelcomeMessageSkeleton } from "@/components/ui/skeletons/dashboard/welcome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WelcomeMessage } from "@/components/ui/welcomeMessage";
@@ -29,7 +30,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 export default function Home() {
-
   return (
     <main>
       <div className="flex items-center justify-between">
@@ -47,7 +47,9 @@ export default function Home() {
           </Button>
         </Link>
       </div>
-      <Stats />
+      <Suspense fallback={<StatsSkeleton />}>
+        <Stats />
+      </Suspense>
       <div className="grid gap-6 md:grid-cols-7">
         <Card className="md:col-span-4">
           <CardHeader>
@@ -63,9 +65,7 @@ export default function Home() {
                 <TabsTrigger value="orders">Online Orders</TabsTrigger>
               </TabsList>
               <TabsContent value="transactions" className="mt-4">
-                <Suspense
-                  fallback={<RecentTransSkeleton />}
-                >
+                <Suspense fallback={<RecentTransSkeleton />}>
                   <RecentTransactionsServer />
                 </Suspense>
               </TabsContent>

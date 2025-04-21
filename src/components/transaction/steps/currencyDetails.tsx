@@ -89,6 +89,21 @@ export default function CurrencyDetailsForm() {
       0
     );
     setValue("allCurrencyDetails.totalSterling", totalSterling);
+
+    const totalBought = watchedCurrencyDetails
+      .filter((currency) => currency.transactionType === "BUY")
+      .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
+
+    const totalSold = watchedCurrencyDetails
+      .filter((currency) => currency.transactionType === "SELL")
+      .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
+
+    console.log("Total Bought", totalBought); 
+    console.log("Total Sold", totalSold);
+
+    setValue("allCurrencyDetails.totalBought", totalBought);
+    setValue("allCurrencyDetails.totalSold", totalSold);
+
     if (totalSterling >= 5000) {
       setTransactionLevel("HIGH");
     } else if (totalSterling >= 500) {
@@ -192,10 +207,7 @@ export default function CurrencyDetailsForm() {
   };
 
   // Show loading state while currencies are loading
-  if (isLoading )
-    return <CurrencySkeleton />;
-
-
+  if (isLoading) return <CurrencySkeleton />;
 
   // --- UI rendering below (form fields, transaction items, etc.) ---
 
@@ -529,65 +541,61 @@ export default function CurrencyDetailsForm() {
               </p>
             </div>
           ) : (
-              <div className="space-y-4">
-                {fields.map((item, idx) => {
-                  const currency =
-                    currencies!.find((c) => c.code === item.currencyCode) ||
-                    currencies![0];
-                  return (
-                    <div key={idx} className="rounded-md border p-3">
-                      <div className="mb-2 flex items-center justify-between">
-                        <Badge
-                          variant={
-                            item.transactionType === "SELL"
-                              ? "outline"
-                              : "secondary"
-                          }
-                        >
-                          {item.transactionType === "SELL" ? "Sell" : "Buy"}{" "}
-                          {item.currencyCode}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+            <div className="space-y-4">
+              {fields.map((item, idx) => {
+                const currency =
+                  currencies!.find((c) => c.code === item.currencyCode) ||
+                  currencies![0];
+                return (
+                  <div key={idx} className="rounded-md border p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <Badge
+                        variant={
+                          item.transactionType === "SELL"
+                            ? "outline"
+                            : "secondary"
+                        }
+                      >
+                        {item.transactionType === "SELL" ? "Sell" : "Buy"}{" "}
+                        {item.currencyCode}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Sterling:</span>
+                        <span>£{item.sterlingAmount.toFixed(2)}</span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Sterling:
-                          </span>
-                          <span>£{item.sterlingAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Foreign:
-                          </span>
-                          <span>
-                            {currency.symbol}
-                            {item.foreignAmount.toFixed(2)}
-                          </span>
-                        </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Foreign:</span>
+                        <span>
+                          {currency.symbol}
+                          {item.foreignAmount.toFixed(2)}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
 
-                <Separator />
+              <Separator />
 
-                <div className="flex justify-between font-medium">
-                  <span>Total Sterling:</span>
-                  <span>
-                    £{watch("allCurrencyDetails.totalSterling").toFixed(2)}
-                  </span>
-                </div>
+              <div className="flex justify-between font-medium">
+                <span>Total Sterling:</span>
+                <span>
+                  £{watch("allCurrencyDetails.totalSterling").toFixed(2)}
+                </span>
+              </div>
 
-                <Alert
-                  className={`
+              <Alert
+                className={`
                         ${
                           transactionLevel === "LOW"
                             ? "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300"
@@ -604,26 +612,26 @@ export default function CurrencyDetailsForm() {
                             : ""
                         }
                       `}
-                >
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>
-                    Transaction Level:{" "}
-                    {transactionLevel === "LOW"
-                      ? "Low"
-                      : transactionLevel === "MEDIUM"
-                      ? "Medium"
-                      : "High"}
-                  </AlertTitle>
-                  <AlertDescription>
-                    {transactionLevel === "LOW" &&
-                      "Basic customer information required."}
-                    {transactionLevel === "MEDIUM" &&
-                      "Customer ID verification required."}
-                    {transactionLevel === "HIGH" &&
-                      "Enhanced due diligence required with two forms of ID."}
-                  </AlertDescription>
-                </Alert>
-              </div>
+              >
+                <Info className="h-4 w-4" />
+                <AlertTitle>
+                  Transaction Level:{" "}
+                  {transactionLevel === "LOW"
+                    ? "Low"
+                    : transactionLevel === "MEDIUM"
+                    ? "Medium"
+                    : "High"}
+                </AlertTitle>
+                <AlertDescription>
+                  {transactionLevel === "LOW" &&
+                    "Basic customer information required."}
+                  {transactionLevel === "MEDIUM" &&
+                    "Customer ID verification required."}
+                  {transactionLevel === "HIGH" &&
+                    "Enhanced due diligence required with two forms of ID."}
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
         </CardContent>
       </Card>

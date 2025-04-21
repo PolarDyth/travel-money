@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
   const body: TransactionSchema = await req.json();
   
   const validated = validatedTransactionSchema.safeParse(body);
+  console.log("Validated?", validated.success);
   if (!validated.success) {
+    console.error("Validation error:", validated?.error);
     return new Response(JSON.stringify(validated.error), {
       status: 400,
     });
@@ -170,6 +172,8 @@ export async function POST(req: NextRequest) {
         ),
         cashTendered: validated.data.verification.cashTendered,
         totalSterling: validated.data.allCurrencyDetails.totalSterling,
+        totalBought: validated.data.allCurrencyDetails.totalBought,
+        totalSold: validated.data.allCurrencyDetails.totalSold,
       },
     });
 

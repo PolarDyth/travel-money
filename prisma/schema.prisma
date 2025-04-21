@@ -43,11 +43,11 @@ model Customer {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   firstName String
   lastName  String
-  email     String   @unique
-  username  String   @unique
+  email     String @unique
+  username  String @unique
   password  String // Store as hash
 
   role      Role     @default(OPERATOR) // Default role is OPERATOR
@@ -88,6 +88,8 @@ model Transaction {
   paymentMethod String // Store as JSON string
   cashTendered  Decimal? @db.Decimal(10, 2)
   totalSterling Decimal? @db.Decimal(10, 2)
+  totalSold     Decimal? @db.Decimal(10, 2)
+  totalBought   Decimal? @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -98,11 +100,11 @@ model CurrencyDetail {
   transaction   Transaction @relation(fields: [transactionId], references: [id])
   transactionId Int
 
-  currencyCode    String   @db.Char(3)
-  currency        Currency @relation(fields: [currencyCode], references: [code])
-  sterlingAmount  Decimal  @db.Decimal(10, 2)
-  foreignAmount   Decimal  @db.Decimal(10, 2)
-  exchangeRate    Decimal  @db.Decimal(10, 6)
+  currencyCode    String          @db.Char(3)
+  currency        Currency        @relation(fields: [currencyCode], references: [code])
+  sterlingAmount  Decimal         @db.Decimal(10, 2)
+  foreignAmount   Decimal         @db.Decimal(10, 2)
+  exchangeRate    Decimal         @db.Decimal(10, 6)
   transactionType TransactionType
 
   createdAt DateTime @default(now())
