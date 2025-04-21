@@ -25,7 +25,6 @@ export async function GET() {
       },
     },
   });
-  console.log("Rates", list[0].rates[0])
 
   const currencies = list.map((currency) => ({
     code: currency.code,
