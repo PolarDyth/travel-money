@@ -2,10 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/fetch-rates",
-      "schedule": "0 0 * * *",
-      "headers" : {
-        "x-cron-secret": "@CRON_SECRET"
-      }
+      "schedule": "0 0 * * *"
     }
   ]
 }

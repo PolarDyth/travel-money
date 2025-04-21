@@ -72,8 +72,7 @@ export async function middleware(req: NextRequest) {
 }
 
 async function isCron(req: NextRequest) {
-  const secret = req.headers.get("x-cron-secret");
-  console.log("Secret:", secret);
+  const secret = req.headers.get("authorization");
   if (!secret) {
     return new NextResponse(JSON.stringify({ error: "No secret provided" }), {
       status: 400,
@@ -81,7 +80,7 @@ async function isCron(req: NextRequest) {
     });
   }
 
-  if (secret !== process.env.CRON_SECRET) {
+  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
     return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
