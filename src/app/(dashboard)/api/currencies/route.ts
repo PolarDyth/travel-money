@@ -15,6 +15,7 @@ export async function GET() {
       rates: {
         where: {
           baseCode: "GBP",
+          date: today,
         },
         select: {
           rate: true,
@@ -24,6 +25,8 @@ export async function GET() {
       },
     },
   });
+  console.log("Rates", list[0].rates[0])
+
   const currencies = list.map((currency) => ({
     code: currency.code,
     name: currency.name,

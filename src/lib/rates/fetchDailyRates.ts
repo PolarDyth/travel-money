@@ -24,7 +24,8 @@ export async function fetchDailyRates() {
   const codes = new Set(accepted.map((c) => c.code));
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
 
   const ops = Object.entries(conversion_rates).filter(([code]) => codes.has(code)).map(([currencyCode, rate]) => {
     const buyRate = rate * (1 + BUY_SPREAD);

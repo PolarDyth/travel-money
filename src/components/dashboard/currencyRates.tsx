@@ -26,10 +26,13 @@ type Currencies = Prisma.CurrencyGetPayload<{
 
 export async function CurrencyRates() {
 
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+
   const currencyData = await getCurrencies({
     include: {
       rates: {
-        where: { baseCode: "GBP" },
+        where: { baseCode: "GBP", date: date },
         select: {
           rate: true,
           buyRate: true,
