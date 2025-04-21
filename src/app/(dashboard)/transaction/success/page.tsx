@@ -18,8 +18,8 @@ import { getTransactionById } from "@/lib/db/transactionHelpers";
 export default async function TransactionSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;}
-) {
+  searchParams: Promise<{ id?: string }>;
+}) {
   const { id: transactionId } = await searchParams;
   // Make sure to specify the generic type so TypeScript knows the return type includes the relations
   const transaction = await getTransactionById({
@@ -28,7 +28,7 @@ export default async function TransactionSuccessPage({
       customer: true,
       currencyDetails: { include: { currency: true } },
       operator: true,
-    }
+    },
   });
 
   if (!transaction) {
@@ -78,20 +78,42 @@ export default async function TransactionSuccessPage({
                 </p>
               </div>
               <div>
-                {transaction.customer.phoneEnc && (
-                  <>
-                    <p className="text-sm text-muted-foreground">Contact</p>
-                    <p>{decryptFromString(transaction.customer.phoneEnc)}</p>
-                  </>
-                )}
+                {transaction.customer.phoneEnc &&
+                  (() => {
+                    try {
+                      const decrypted = decryptFromString(
+                        transaction.customer.phoneEnc
+                      );
+                      return (
+                        <>
+                          <p className="text-sm text-muted-foreground">
+                            Contact
+                          </p>
+                          <p>{decrypted}</p>
+                        </>
+                      );
+                    } catch {
+                      return null; // or show a fallback
+                    }
+                  })()}
               </div>
               <div>
-                {transaction.customer.emailEnc && (
-                  <>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p>{decryptFromString(transaction.customer.emailEnc)}</p>
-                  </>
-                )}
+                {transaction.customer.emailEnc &&
+                  (() => {
+                    try {
+                      const decrypted = decryptFromString(
+                        transaction.customer.emailEnc
+                      );
+                      return (
+                        <>
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <p>{decrypted}</p>
+                        </>
+                      );
+                    } catch {
+                      return null;
+                    }
+                  })()}
               </div>
             </div>
           </div>
@@ -110,8 +132,7 @@ export default async function TransactionSuccessPage({
                           {c.currency.name} ({c.currency.code})
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Rate: £1 = {c.currency.code}{" "}
-                          {Number(c.exchangeRate)}
+                          Rate: £1 = {c.currency.code} {Number(c.exchangeRate)}
                         </p>
                       </div>
                     </div>
@@ -195,7 +216,10 @@ export default async function TransactionSuccessPage({
             <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               <div>
                 <p className="text-muted-foreground">Operator</p>
-                <p>{transaction.operator.firstName}{" "}{transaction.operator.lastName}</p>
+                <p>
+                  {transaction.operator.firstName}{" "}
+                  {transaction.operator.lastName}
+                </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Operator ID</p>
@@ -238,13 +262,10 @@ export default async function TransactionSuccessPage({
             </Button>
           </Link>
           <Link href={"/"} className="w-full">
-          <Button
-            variant="outline"
-            className="w-full"
-          >
-            Return to Dashboard
-            <Home className="ml-2 h-4 w-4" />
-          </Button>
+            <Button variant="outline" className="w-full">
+              Return to Dashboard
+              <Home className="ml-2 h-4 w-4" />
+            </Button>
           </Link>
         </CardFooter>
       </Card>
