@@ -59,39 +59,65 @@ export default function DenomBreakdown() {
 
   function getEvenlySplitDenominations(
     amount: number,
-    denoms: number[],
-    thresholds: Record<number, number> = {}
+    denoms: number[]
   ): Record<string, number> {
-    const result: Record<string, number> = {};
+    // 1. sort descending, so largest bills get “extra” first if needed
     const sorted = [...denoms].sort((a, b) => b - a);
-    let remaining = amount;
-
-    while (remaining > 0) {
-      const availableDenoms = sorted.filter(
-        (denom) => remaining >= (thresholds[denom] ?? 0)
-      );
-      let gaveSomething = false;
-
-      for (const denom of availableDenoms) {
-        if (remaining >= denom) {
-          result[denom] = (result[denom] ?? 0) + 1;
-          remaining -= denom;
-          gaveSomething = true;
-        }
+  
+    // 2. figure out how many full “sets” of one‑of‑each we can take
+    const sumOfOneEach = sorted.reduce((sum, d) => sum + d, 0);
+    const fullSets = Math.floor(amount / sumOfOneEach);
+  
+    // 3. initialize every denom’s count to fullSets
+    const counts: Record<number, number> = {};
+    sorted.forEach((d) => {
+      counts[d] = fullSets;
+    });
+  
+    // 4. carve off the leftover
+    const leftover = amount - fullSets * sumOfOneEach;
+    if (leftover > 0) {
+      // tiny recursive subset‑sum to pick which distinct denoms add up to leftover
+      function subsetSum(
+        idx: number,
+        target: number,
+        picked: number[]
+      ): number[] | null {
+        if (target === 0) return picked;
+        if (idx === sorted.length || target < 0) return null;
+        // try taking sorted[idx]
+        const withThis = subsetSum(idx + 1, target - sorted[idx], [
+          ...picked,
+          sorted[idx],
+        ]);
+        if (withThis) return withThis;
+        // or skip it
+        return subsetSum(idx + 1, target, picked);
       }
-
-      // if we go through the loop and can't give anything, break to avoid infinite loop
-      if (!gaveSomething) break;
-    }
-    for (const denom of denoms) {
-      if (!(denom in result)) {
-        result[denom] = 0;
+  
+      const extraBills = subsetSum(0, leftover, []);
+      if (!extraBills) {
+        throw new Error(
+          `Cannot make up the leftover ${leftover} with denominations [${denoms.join(
+            ", "
+          )}]`
+        );
       }
+      // bump each picked denom by one
+      extraBills.forEach((d) => {
+        counts[d] = (counts[d] || 0) + 1;
+      });
     }
+  
+    // 5. Make sure every denom is at least 0 in the result, and stringify keys
+    denoms.forEach((d) => {
+      if (!(d in counts)) counts[d] = 0;
+    });
     return Object.fromEntries(
-      Object.entries(result).map(([k, v]) => [String(k), v])
+      Object.entries(counts).map(([denom, qty]) => [denom, qty])
     );
   }
+  
 
   // Only render the denomination breakdown if there is at least one SELL transaction
   const hasSellTransaction = transactionItems.some(

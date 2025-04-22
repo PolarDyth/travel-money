@@ -155,7 +155,7 @@ export const transactionSchema = z
   .object({
     allCurrencyDetails: allCurrencyDetailsSchema,
     customerInfo: customerInfoSchema,
-    denomination: z.array(denominationSchema),
+    denomination: z.array(denominationSchema).optional(),
     verification: verificationSchema,
   })
   
