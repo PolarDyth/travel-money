@@ -46,8 +46,8 @@ export default function LoginPage() {
     } else if (res?.ok) {
       router.push("/login/success")
     }
-  } catch (error) {
-    console.log(error)
+  } catch {
+    setError("An error occurred. Please try again.");
   } finally {
     setIsLoading(false);
   }

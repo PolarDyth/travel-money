@@ -38,7 +38,6 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    console.log("Fetching place details for placeId:", placeId);
     const response = await client.placeDetails({
       params: {
         place_id: placeId,

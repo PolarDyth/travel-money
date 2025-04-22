@@ -53,10 +53,6 @@ export default function Confirmation() {
   if (!currencies) return <p>No currencies available</p>;
   if (currencies.length === 0) return <p>No currencies found</p>;
 
-  if (currencies) {
-    console.log("currenciessada:", currencies[0].rates[0]);
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -269,7 +265,6 @@ export default function Confirmation() {
                       const sellRate = currency?.rates?.[0]?.sellRate;
                       const buyRate = currency?.rates?.[0]?.buyRate;
 
-                      console.log("sellRate", sellRate);
                       return (
                         <div key={item.id} className="space-y-1">
                           <div className="flex justify-between font-medium">

@@ -89,8 +89,6 @@ async function isCron(req: NextRequest) {
     });
   }
 
-  console.log("Cron job triggered");
-
   return true;
 }
 

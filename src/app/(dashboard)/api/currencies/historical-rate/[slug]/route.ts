@@ -8,7 +8,6 @@ export async function GET(
   params: Promise<{ slug: string }>
 })  {
   const { slug } = await params;
-  console.log("Fetching historical rates for code:", slug);
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const oneMonthAgo = new Date(today);

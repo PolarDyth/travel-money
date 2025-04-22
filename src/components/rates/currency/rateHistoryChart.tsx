@@ -16,7 +16,6 @@ export function RateHistoryChart({ currency, period = "1M", height = 300 }: Rate
   // Fetch rates if no data prop is provided
   const { currencies: fetchedRates, isLoading, error } = useParamPrevRates(currency.code)
 
-  console.log("fetchedRates:", fetchedRates)
 
   // Normalize the data: prefer prop, else fetched, else empty array
   let chartData: ExchangeRate[] = []
@@ -47,7 +46,6 @@ export function RateHistoryChart({ currency, period = "1M", height = 300 }: Rate
     return itemDate >= startDate && itemDate <= now;
   });
 
-  console.log("formattedData:", formattedData)
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-[300px]">Loading chart data...</div>

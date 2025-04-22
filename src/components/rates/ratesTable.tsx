@@ -52,8 +52,6 @@ export function RatesTable() {
   const currencies = JSON.parse(JSON.stringify(data));
   const prevCurrencies = JSON.parse(JSON.stringify(prevCurrenciesData)) ?? [];
 
-  console.log("Prev Currencies", prevCurrencies);
-
   if (error || prevError) throw new Error("Failed to fetch currencies data");
 
   // Filter currencies based on search query and region

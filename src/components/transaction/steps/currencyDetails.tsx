@@ -51,8 +51,6 @@ export default function CurrencyDetailsForm() {
   // Get currencies, loading, and error state from context
   const { currencies: data, isLoading, error } = useCurrencyContext();
 
-  console.log("Currency data:", data);
-
   if (error) throw new Error("Failed to fetch currencies");
 
   // Get form context for the parent transaction form
@@ -99,9 +97,6 @@ export default function CurrencyDetailsForm() {
     const totalSold = watchedCurrencyDetails
       .filter((currency) => currency.transactionType === "SELL")
       .reduce((sum, currency) => sum + Math.abs(currency.sterlingAmount), 0);
-
-    console.log("Total Bought", totalBought);
-    console.log("Total Sold", totalSold);
 
     setValue("allCurrencyDetails.totalBought", totalBought);
     setValue("allCurrencyDetails.totalSold", totalSold);

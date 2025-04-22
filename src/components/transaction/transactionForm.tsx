@@ -70,8 +70,6 @@ export default function Transaction() {
     if (currentStep < TOTAL_STEPS - 1) {
       const valid = await methods.trigger(getSchemaSteps(currentStep));
       if (valid) setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS - 1));
-      else
-        console.error("Validation failed for step:", methods.formState.errors);
     }
   };
 

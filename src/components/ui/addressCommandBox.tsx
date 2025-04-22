@@ -38,13 +38,9 @@ export default function AddressCommandBox() {
   }, [query]);
 
   const handleSelect = async (placeId: string) => {
-    console.log("Suggestion selected:", suggestions);
-    console.log("Selected placeId:", placeId);
     const res = await fetch(`/api/address/details?placeId=${placeId}`);
     const data = await res.json();
-    console.log("Place details:", data.details);
     const parsed = parseAddressComponents(data.details.address_components);
-    console.log("Parsed address:", parsed);
     setValue("customerInfo.customerAddressLine1", parsed.streetAddress);
     setValue("customerInfo.customerPostcode", parsed.postcode);
     setValue("customerInfo.customerCity", parsed.city);

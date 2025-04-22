@@ -23,8 +23,6 @@ export function CurrencyOverview({ currency }: CurrencyOverviewProps) {
 
   const prevCurrencies = JSON.parse(JSON.stringify(prevData));
 
-  console.log("prevCurrencies:", prevCurrencies);
-
   return (
     <>
       <Card>
@@ -129,3 +127,4 @@ export function CurrencyOverview({ currency }: CurrencyOverviewProps) {
     </>
   );
 }
+

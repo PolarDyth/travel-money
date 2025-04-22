@@ -25,7 +25,6 @@ export type CurrencyPageType = Prisma.CurrencyGetPayload<{
 export default async function CurrencyDetailPage({ code }: {code: string} ) {
   const currencyCode = code
 
-  console.log("Currency code:",currencyCode)
 
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
