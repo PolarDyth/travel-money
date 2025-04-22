@@ -51,6 +51,7 @@ export default function CurrencyDetailsForm() {
   // Get currencies, loading, and error state from context
   const { currencies: data, isLoading, error } = useCurrencyContext();
 
+
   if (error) throw new Error("Failed to fetch currencies");
 
   // Get form context for the parent transaction form
