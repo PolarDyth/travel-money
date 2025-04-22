@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { code: string } }) {
-  const code = params.code; // e.g. 'USD'
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+
+  const { slug } = await params;
 
   const searchParams = req.nextUrl.searchParams;
-  const prevRates = searchParams.get("prevRates") === "true" ? true : false;
+  const prevRates = searchParams.get("prevRates") === "true";
 
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
     const prevRates = await prisma.exchangeRate.findMany({
       where: {
         baseCode: 'GBP',
-        currencyCode: code,
+        currencyCode: slug,
         date: yesterday,
       }
     });
@@ -34,8 +35,8 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
     });
   }
 
-  const currency = prisma.currency.findUnique({
-    where: { code },
+  const currency = await prisma.currency.findUnique({
+    where: { code: slug },
     include: {
       rates: {
         where: {
