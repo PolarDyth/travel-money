@@ -10,30 +10,33 @@ type CurrencyContextType = {
   error: Error | undefined;
 };
 
-const CurrencyContext = createContext<CurrencyContextType | undefined>(
-  undefined
-);
+const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // Default fetch (just currencies)
   const { data, isLoading, error } = useSWR<Currencies[], Error>(
     "/api/currencies",
     fetcher
   );
 
-  console.log("CurrencyProvider data:", data);
-  
-  
   return (
-    <CurrencyContext.Provider value={{ currencies: data, isLoading, error }}>
+    <CurrencyContext.Provider
+      value={{
+        currencies: data,
+        isLoading,
+        error,
+      }}
+    >
       {children}
     </CurrencyContext.Provider>
   );
 };
 
+// Hook for currencies (today)
 export function useCurrencyContext() {
   const context = useContext(CurrencyContext);
   if (!context) {
@@ -43,3 +46,4 @@ export function useCurrencyContext() {
   }
   return context;
 }
+

@@ -10,10 +10,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRatesContext } from "@/app/(dashboard)/rates/context/RatesContext";
+import { useCurrencyContext } from "@/app/(dashboard)/transaction/context/CurrencyContext";
+import { Currencies } from "@/lib/types/currency/type";
 
 export function RatesFilters() {
   const { searchQuery, setSearchQuery, regionFilter, setRegionFilter } =
     useRatesContext();
+
+  const { currencies: data, isLoading, error } = useCurrencyContext();
+
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (error) throw new Error("Failed to fetch currencies data");
+
+  const currencies = JSON.parse(JSON.stringify(data));
+
+  const allRegions = Array.from(
+    new Set(
+      currencies
+        .flatMap((c: Currencies) =>
+          c.region
+            ? c.region.split("/").map((r: string) => r.trim())
+            : []
+        )
+        .filter(Boolean)
+    )
+  ) as string[];
 
   return (
     <div>
@@ -36,10 +59,11 @@ export function RatesFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Regions</SelectItem>
-              <SelectItem value="Europe">Europe</SelectItem>
-              <SelectItem value="Asia">Asia</SelectItem>
-              <SelectItem value="North America">North America</SelectItem>
-              <SelectItem value="Oceania">Oceania</SelectItem>
+              {allRegions.map((region: string, index: number) => (
+                <SelectItem key={index} value={region}>
+                  {region}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

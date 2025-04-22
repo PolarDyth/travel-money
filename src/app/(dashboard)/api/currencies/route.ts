@@ -1,17 +1,19 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+
+  const params = req.nextUrl.searchParams;
+  const prevRates = params.get("prevRates") === "true" ? true : false;
+
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
   const list = await prisma.currency.findMany({
-    select: {
-      code: true,
-      name: true,
-      symbol: true,
-      denominations: true,
-      thresholdRules: true,
+    include: {
       rates: {
         where: {
           baseCode: "GBP",
@@ -26,5 +28,31 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json(list)
+  if (prevRates) {
+    const prevList = await prisma.exchangeRate.findMany({
+      where: {
+        baseCode: "GBP",
+        date: yesterday,
+      },
+      select: {
+        currencyCode: true,
+        buyRate: true,
+        sellRate: true,
+      },
+    });
+    return new Response(JSON.stringify(prevList), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+
+  return NextResponse.json(list, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }

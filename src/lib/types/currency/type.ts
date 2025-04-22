@@ -13,3 +13,23 @@ export type Currencies = Prisma.CurrencyGetPayload<{
     };
   };
 }>;
+
+export type ExchangeRates = Prisma.ExchangeRateGetPayload<{
+  where: { baseCode: "GBP" };
+  select: {
+    currencyCode: true;
+    buyRate: true;
+    sellRate: true;
+  };
+}>;
+
+export type ExchangeRate = Prisma.ExchangeRateGetPayload<{
+  where: { baseCode: "GBP" };
+  select: {
+    currencyCode: true;
+    rate: true;
+    buyRate: true;
+    sellRate: true;
+    date: true;
+  };
+}>;
