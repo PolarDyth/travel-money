@@ -5,6 +5,7 @@ import { ExchangeRates } from "@/lib/types/currency/type";
 import { ArrowUp } from "lucide-react";
 import { useParamPrevRates } from "@/routes/currency";
 import { RateHistoryChart } from "./rateHistoryChart";
+import { DenominationsPreview } from "./denominationsPreview";
 
 interface CurrencyOverviewProps {
   currency: CurrencyPageType;
@@ -121,7 +122,7 @@ export function CurrencyOverview({ currency }: CurrencyOverviewProps) {
             <CardTitle>Available Denominations</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* <DenominationsPreview currency={currency} /> */}
+            <DenominationsPreview currency={currency} />
           </CardContent>
         </Card>
       </div>

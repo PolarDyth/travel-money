@@ -10,10 +10,9 @@ interface RateHistoryChartProps {
   currency: Currencies
   period?: string
   height?: number
-  data?: ExchangeRate[]
 }
 
-export function RateHistoryChart({ currency, height = 300, data }: RateHistoryChartProps) {
+export function RateHistoryChart({ currency, period = "1M", height = 300 }: RateHistoryChartProps) {
   // Fetch rates if no data prop is provided
   const { currencies: fetchedRates, isLoading, error } = useParamPrevRates(currency.code)
 
@@ -21,11 +20,18 @@ export function RateHistoryChart({ currency, height = 300, data }: RateHistoryCh
 
   // Normalize the data: prefer prop, else fetched, else empty array
   let chartData: ExchangeRate[] = []
-  if (data && Array.isArray(data)) {
-    chartData = data
+  if (fetchedRates && Array.isArray(fetchedRates)) {
+    chartData = fetchedRates
   } else if (fetchedRates && Array.isArray(fetchedRates)) {
     chartData = fetchedRates
   }
+
+  const now = new Date();
+  const startDate = new Date(now);
+  if (period === "1W") startDate.setDate(now.getDate() - 7);
+  else if (period === "1M") startDate.setMonth(now.getMonth() - 1);
+  else if (period === "3M") startDate.setMonth(now.getMonth() - 3);
+  else if (period === "1Y") startDate.setFullYear(now.getFullYear() - 1);
 
   // Format the date for the X axis
   const formattedData = chartData.map((item) => ({
@@ -35,6 +41,11 @@ export function RateHistoryChart({ currency, height = 300, data }: RateHistoryCh
       : item.date,
       rate: Number(item.rate)
   }))
+
+  const filteredData = formattedData.filter(item => {
+    const itemDate = new Date(item.date);
+    return itemDate >= startDate && itemDate <= now;
+  });
 
   console.log("formattedData:", formattedData)
 
@@ -51,17 +62,20 @@ export function RateHistoryChart({ currency, height = 300, data }: RateHistoryCh
   }
 
   return (
-    <ChartContainer
-      config={{
-        rate: {
-          label: "Rate",
-          color: "hsl(var(--chart-1))",
-        },
-      }}
-      className={`h-[${height}px]`}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={formattedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+    <div>
+      <div className="flex gap-2 mb-2">
+      </div>
+      <ChartContainer
+        config={{
+          rate: {
+            label: "Rate",
+            color: "hsl(var(--chart-1))",
+          },
+        }}
+        className={`h-[${height}px}`}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={filteredData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <XAxis
             dataKey="date"
             tickFormatter={(value) => value}
@@ -84,5 +98,6 @@ export function RateHistoryChart({ currency, height = 300, data }: RateHistoryCh
         </LineChart>
       </ResponsiveContainer>
     </ChartContainer>
+    </div>
   );
 }

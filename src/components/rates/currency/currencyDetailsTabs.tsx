@@ -6,6 +6,8 @@ import { Globe, Info, LineChart, Wallet } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CurrencyPageType } from "./fullCurrencyPage"
 import { CurrencyOverview } from "./currencyOverview"
+import { CurrencyHistory } from "./currencyHistory"
+import { CurrencyDenominations } from "./currencyDenominations"
 
 interface CurrencyDetailTabsProps {
   currency: CurrencyPageType;
@@ -39,13 +41,13 @@ export function CurrencyDetailTabs({ currency }: CurrencyDetailTabsProps) {
           <CurrencyOverview currency={currency} />
       </TabsContent>
 
-      {/* <TabsContent value="history" className="space-y-4">
+      <TabsContent value="history" className="space-y-4">
           <CurrencyHistory currency={currency} />
       </TabsContent>
 
       <TabsContent value="denominations" className="space-y-4">
           <CurrencyDenominations currency={currency} />
-      </TabsContent> */}
+      </TabsContent>
     </Tabs>
   )
 }
