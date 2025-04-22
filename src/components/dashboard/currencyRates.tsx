@@ -86,7 +86,7 @@ export async function CurrencyRates() {
   
 
   const yesterday = new Date(date);
-  yesterday.setDate(yesterday.getDate() - 2);
+  yesterday.setDate(yesterday.getDate() - 1);
 
   const yesterdayExchangeRates = await getExchangeRates({
     where: {
