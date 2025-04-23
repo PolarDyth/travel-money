@@ -29,18 +29,17 @@ export function RateCalculator({ currency }: RateCalculatorProps) {
 
     if (direction === "fromGBP") {
       // Converting from GBP to foreign currency (using sell rate)
-      const foreignAmount = numAmount / Number(currency.rates[0].sellRate)
+      const foreignAmount = numAmount * Number(currency.rates[0].sellRate)
       setResult(foreignAmount.toFixed(2))
     } else {
       // Converting from foreign currency to GBP (using buy rate)
-      const gbpAmount = numAmount * Number(currency.rates[0].buyRate)
+      const gbpAmount = numAmount / Number(currency.rates[0].buyRate)
       setResult(gbpAmount.toFixed(2))
     }
   }, [amount, direction, currency])
 
   const handleSwap = () => {
     setDirection(direction === "fromGBP" ? "toGBP" : "fromGBP")
-    setAmount(result)
   }
 
   return (
@@ -89,7 +88,7 @@ export function RateCalculator({ currency }: RateCalculatorProps) {
           <div className="text-xs text-muted-foreground">
             Rate:{" "}
             {direction === "fromGBP"
-              ? `£1 = ${currency.symbol}${(1 / Number(currency.rates[0].sellRate))}`
+              ? `£1 = ${currency.symbol}${(Number(currency.rates[0].sellRate))}`
               : `${currency.symbol}1 = £${Number(currency.rates[0].buyRate)}`}
           </div>
         </div>

@@ -25,22 +25,22 @@ export function CurrencyDetailOverview({ currency }: CurrencyDetailOverviewProps
               <div className="text-sm font-medium text-muted-foreground">We Buy</div>
               <div className="flex items-baseline gap-2">
                 <div className="text-3xl font-bold">{Number(currency.rates[0].buyRate)}</div>
-                <div className="text-sm text-muted-foreground">GBP per {currency.symbol}1</div>
+                <div className="text-sm text-muted-foreground">{currency.code} per £1</div>
               </div>
               <div className="text-sm">
                 £1 = {currency.symbol}
-                {(1 / Number(currency.rates[0].buyRate))}
+                {(1 * Number(currency.rates[0].buyRate)).toFixed(5)}
               </div>
             </div>
             <div className="space-y-2">
               <div className="text-sm font-medium text-muted-foreground">We Sell</div>
               <div className="flex items-baseline gap-2">
                 <div className="text-3xl font-bold">{Number(currency.rates[0].sellRate)}</div>
-                <div className="text-sm text-muted-foreground">GBP per {currency.symbol}1</div>
+                <div className="text-sm text-muted-foreground">{currency.code} per £1</div>
               </div>
               <div className="text-sm">
                 £1 = {currency.symbol}
-                {(1 / Number(currency.rates[0].sellRate))}
+                {(1 * Number(currency.rates[0].sellRate))}
               </div>
             </div>
           </div>

@@ -4,10 +4,11 @@ import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useParamPrevRates } from "@/routes/currency"
-import { Currencies, ExchangeRate } from "@/lib/types/currency/type"
+import { ExchangeRate } from "@/lib/types/currency/type"
+import { CurrencyPageType } from "./fullCurrencyPage"
 
 interface RateHistoryChartProps {
-  currency: Currencies
+  currency: CurrencyPageType
   period?: string
   height?: number
 }

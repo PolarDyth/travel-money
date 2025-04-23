@@ -5,10 +5,10 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RateHistoryChart } from "./rateHistoryChart"
-import { Currencies } from "@/lib/types/currency/type"
+import { CurrencyPageType } from "./fullCurrencyPage"
 
 interface CurrencyHistoryProps {
-  currency: Currencies
+  currency: CurrencyPageType
 }
 
 export function CurrencyHistory({ currency }: CurrencyHistoryProps) {

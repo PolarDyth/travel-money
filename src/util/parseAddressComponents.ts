@@ -10,3 +10,4 @@ export function parseAddressComponents(components: google.maps.GeocoderAddressCo
     county: get("administrative_area_level_2"),
   };
 }
+

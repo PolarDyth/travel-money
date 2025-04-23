@@ -16,6 +16,7 @@ export type CurrencyPageType = Prisma.CurrencyGetPayload<{
         rate: true
         buyRate: true
         sellRate: true
+        date: true
         fetchedAt: true
       }
     }
@@ -41,6 +42,7 @@ export default async function CurrencyDetailPage({ code }: {code: string} ) {
           rate: true,
           buyRate: true,
           sellRate: true,
+          date: true,
           fetchedAt: true,
         },
       },

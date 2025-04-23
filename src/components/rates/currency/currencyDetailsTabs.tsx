@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Globe, Info, LineChart, Wallet } from "lucide-react"
+import { Info, LineChart, Wallet } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CurrencyPageType } from "./fullCurrencyPage"
@@ -18,7 +18,7 @@ export function CurrencyDetailTabs({ currency }: CurrencyDetailTabsProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid grid-cols-4 md:w-[400px]">
+      <TabsList className="grid grid-cols-4 justify-between">
         <TabsTrigger value="overview" className="flex items-center gap-1">
           <Info className="h-4 w-4" />
           <span className="hidden sm:inline">Overview</span>
@@ -30,10 +30,6 @@ export function CurrencyDetailTabs({ currency }: CurrencyDetailTabsProps) {
         <TabsTrigger value="denominations" className="flex items-center gap-1">
           <Wallet className="h-4 w-4" />
           <span className="hidden sm:inline">Denominations</span>
-        </TabsTrigger>
-        <TabsTrigger value="insights" className="flex items-center gap-1">
-          <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">Insights</span>
         </TabsTrigger>
       </TabsList>
 

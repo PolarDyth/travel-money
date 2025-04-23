@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CurrencyPageType } from "./fullCurrencyPage";
 import { notFound } from "next/navigation";
-import { ExchangeRates } from "@/lib/types/currency/type";
-import { ArrowUp } from "lucide-react";
+import { ExchangeRate } from "@/lib/types/currency/type";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useParamPrevRates } from "@/routes/currency";
 import { RateHistoryChart } from "./rateHistoryChart";
 import { DenominationsPreview } from "./denominationsPreview";
@@ -68,11 +68,14 @@ export function CurrencyOverview({ currency }: CurrencyOverviewProps) {
               </div>
               <div>
               {(() => {
+                const date = new Date(currency.rates[0].date);
+                date.setDate(date.getDate() - 1);
+                const isoDateString = date.toISOString();
                 const yesterdayRate = prevCurrencies.find(
-                  (rate: ExchangeRates) => rate.currencyCode === currency.code
+                  (rate: ExchangeRate) => new Date(rate.date).toISOString() === isoDateString
                 );
-                const todayBuy = currency.rates[0]?.buyRate ?? null;
-                const yesterdayBuy = yesterdayRate?.buyRate ?? null;
+                const todayBuy = currency.rates[0]?.rate ?? null;
+                const yesterdayBuy = yesterdayRate?.rate ?? null;
 
                 if (todayBuy == null || yesterdayBuy == null) {
                   return <span>-</span>;
@@ -87,13 +90,13 @@ export function CurrencyOverview({ currency }: CurrencyOverviewProps) {
                 } else if (todayBuy < yesterdayBuy) {
                   return (
                     <div className="flex items-center text-red-500">
-                      <ArrowUp className="h-4 w-4 rotate-180" />
+                      <ArrowDown className="h-4 w-4" />
                     </div>
                   );
                 } else {
                   return (
                     <div className="flex items-center text-gray-400">
-                      <ArrowUp className="h-4 w-4 rotate-90" />
+                      -
                     </div>
                   );
                 }

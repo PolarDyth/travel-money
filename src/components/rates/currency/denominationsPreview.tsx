@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge"
-import { Currencies } from "@/lib/types/currency/type"
+import { CurrencyPageType } from "./fullCurrencyPage"
 
 interface DenominationsPreviewProps {
-  currency: Currencies
+  currency: CurrencyPageType
 }
 
 export function DenominationsPreview({ currency }: DenominationsPreviewProps) {
