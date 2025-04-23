@@ -11,7 +11,7 @@ export async function GET(
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const oneMonthAgo = new Date(today);
-  oneMonthAgo.setMonth(today.getMonth() - 1);
+  oneMonthAgo.setFullYear(today.getFullYear() - 1);
 
   // Fetch all rates for this currency code in the past year (base GBP)
   const rates = await prisma.exchangeRate.findMany({
