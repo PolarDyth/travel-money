@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   X,
   History,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
@@ -63,6 +64,11 @@ export default function Sidebar() {
             href="/transaction"
             icon={<ArrowLeftRight className="h-5 w-5" />}
             label="Currency Exchange"
+          />
+          <NavItem
+            href="/assistant"
+            icon={<Sparkles className="h-5 w-5" />}
+            label="Exchange Assistant"
           />
           <NavItem
             href="/orders"

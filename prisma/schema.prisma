@@ -38,6 +38,8 @@ model Customer {
   // Relations
   transactions Transaction[]
 
+  orders Order[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -58,6 +60,12 @@ model User {
   // Relations
   sessions     Session[]
   transactions Transaction[] @relation("OperatorTransactions")
+  orders       Order[]       @relation("OperatorOrders")
+
+  @@index([username])
+  @@index([email])
+  @@index([branch])
+  @@index([role])
 }
 
 model Session {
@@ -93,12 +101,15 @@ model Transaction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([operatorId])
+  @@index([customerId])
 }
 
 model CurrencyDetail {
-  id            Int         @id @default(autoincrement())
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
-  transactionId Int
+  id            Int          @id @default(autoincrement())
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  transactionId Int?
 
   currencyCode    String          @db.Char(3)
   currency        Currency        @relation(fields: [currencyCode], references: [code])
@@ -109,6 +120,9 @@ model CurrencyDetail {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([transactionId])
+  @@index([currencyCode])
 }
 
 model ExchangeRate {
@@ -138,6 +152,96 @@ model Currency {
   thresholdRules  Json?
   rates           ExchangeRate[]   @relation("FxRates")
   currencyDetails CurrencyDetail[]
+  orderDetails    OrderItem[]
+}
+
+model Order {
+  id          Int    @id @default(autoincrement())
+  orderNumber String @unique // e.g. “ORD-20250423-0001”
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+
+  // Optionally track who processed/approved it
+  operator   User? @relation("OperatorOrders", fields: [operatorId], references: [id])
+  operatorId Int?
+
+  // Totals
+  totalSterling Decimal @db.Decimal(10, 2) // amount paid/owed in GBP
+  totalForeign  Decimal @db.Decimal(10, 2) // sum of all foreign amounts
+  totalFee      Decimal @db.Decimal(10, 2) // total service fee
+
+  // Payment
+  paymentMethod Json // e.g. {"type":"card","processor":"stripe",…}
+  paidAt        DateTime?
+
+  // Workflow
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Line items
+  items OrderItem[]
+
+  @@index([customerId])
+  @@index([operatorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int
+
+  currencyCode String   @db.Char(3)
+  currency     Currency @relation(fields: [currencyCode], references: [code])
+
+  sterlingAmount  Decimal         @db.Decimal(10, 2)
+  foreignAmount   Decimal         @db.Decimal(10, 2)
+  exchangeRate    Decimal         @db.Decimal(10, 6)
+  transactionType TransactionType
+
+  requestedDenoms RequestedDenomination[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+model RequestedDenomination {
+  id          Int       @id @default(autoincrement())
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  orderItemId Int
+
+  // e.g. 20  for “€20”, 50 for “£50”
+  denomination Int
+  quantity     Int
+
+  @@index([orderItemId])
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    Int?
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      ChatRole
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session ChatSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
 }
 
 enum Role {
@@ -150,4 +254,17 @@ enum Role {
 enum TransactionType {
   BUY
   SELL
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PREPARATION
+  READY
+  COLLECTED
+  CANCELLED
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
 }
