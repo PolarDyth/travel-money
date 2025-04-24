@@ -17,6 +17,7 @@ import {
   Package,
   Settings,
   ShoppingBag,
+  Sparkles,
   User,
   X,
 } from "lucide-react";
@@ -93,6 +94,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               href="/transaction"
               icon={<ArrowLeftRight className="h-5 w-5" />}
               label="Currency Exchange"
+            />
+            <NavItem
+              href="/assistant"
+              icon={<Sparkles className="h-5 w-5" />}
+              label="Assistant"
             />
             <NavItem
               href="/orders"
