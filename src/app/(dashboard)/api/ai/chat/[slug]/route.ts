@@ -72,7 +72,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   });
 }
 
-export async function DELETE({ params }: { params: Promise<{ slug: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   if (!slug) {
