@@ -104,8 +104,6 @@ export async function POST(req: NextRequest) {
   const result = await model.generateContent(fullPrompt);
   const reply = await (await result.response).text();
 
-  console.log("AI reply:", reply);
-
   await prisma.chatMessage.create({
     data: {
       sessionId: chatSession.id,

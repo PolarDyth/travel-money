@@ -136,7 +136,7 @@ export function ChatHistorySidebar({ className }: { className?: string }) {
         )}
       >
         {/* Sidebar Content */}
-        <div className="flex w-64 flex-col h-full chat-history-sidebar"> {/* Added class for focusable elements */}
+        <div className="flex w-64 flex-col h-200 chat-history-sidebar"> {/* Added class for focusable elements */}
           <div className="flex items-center justify-between p-4 border-b shrink-0">
             <h2 className="font-semibold">Chat History</h2>
             {/* Close button (visible on all sizes when open) */}
@@ -152,7 +152,7 @@ export function ChatHistorySidebar({ className }: { className?: string }) {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-y-auto">
             {chats?.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">No chat history yet</div>
             ) : (

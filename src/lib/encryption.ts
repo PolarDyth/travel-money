@@ -4,7 +4,7 @@ const ALGORITHM = "aes-256-gcm";
 const DETERMINISTIC_ALGORITHM = "aes-256-cbc";
 const KEY = Buffer.from(process.env.AES_KEY!, "hex"); // 32 bytes in hex
 const IV_LENGTH = 12; // recommended for GCM
-const DETERMINISTIC_IV = Buffer.alloc(16, 0)
+const DETERMINISTIC_IV = Buffer.alloc(16, 0);
 
 export function encrypt(plainText: string) {
   // 1) Generate a fresh IV
@@ -30,11 +30,7 @@ export function encrypt(plainText: string) {
   };
 }
 
-export function decrypt(encrypted: {
-  iv: string;
-  tag: string;
-  data: string;
-}) {
+export function decrypt(encrypted: { iv: string; tag: string; data: string }) {
   if (!encrypted.iv || !encrypted.tag || !encrypted.data) {
     throw new Error("Missing iv, tag, or data in encrypted payload");
   }
@@ -49,10 +45,7 @@ export function decrypt(encrypted: {
   decipher.setAuthTag(tag);
 
   // 3) Decrypt
-  const decrypted = Buffer.concat([
-    decipher.update(data),
-    decipher.final(),
-  ]);
+  const decrypted = Buffer.concat([decipher.update(data), decipher.final()]);
 
   return decrypted.toString("utf8");
 }
@@ -67,13 +60,34 @@ export function decryptFromString(encryptedString: string) {
   if (!encryptedString) {
     throw new Error("No encrypted string provided");
   }
-  const encrypted = JSON.parse(Buffer.from(encryptedString, "base64").toString("utf8"));
-  return decrypt(encrypted);
+
+  // 1) Try to parse as Base64‑encoded JSON (non‑deterministic AES‑GCM payload)
+  try {
+    const json = Buffer.from(encryptedString, "base64").toString("utf8");
+    const parsed = JSON.parse(json) as {
+      iv?: string;
+      tag?: string;
+      data?: string;
+    };
+
+    if (parsed.iv && parsed.tag && parsed.data) {
+      return decrypt(parsed as { iv: string; tag: string; data: string });
+    }
+  } catch {
+    // parsing failed or missing fields, fall through to deterministic
+  }
+
+  // 2) Fallback: treat the string as a deterministic hex payload
+  return decryptDeterministic(encryptedString);
 }
 
 export function encryptDeterministic(plainText: string): string {
   // 1) Use the fixed IV
-  const cipher = crypto.createCipheriv(DETERMINISTIC_ALGORITHM, KEY, DETERMINISTIC_IV);
+  const cipher = crypto.createCipheriv(
+    DETERMINISTIC_ALGORITHM,
+    KEY,
+    DETERMINISTIC_IV
+  );
 
   // 2) Encrypt
   const encrypted = Buffer.concat([
@@ -89,13 +103,19 @@ export function encryptDeterministic(plainText: string): string {
  * Deterministic AES‑256‑CBC decryption (matches encryptDeterministic).
  */
 export function decryptDeterministic(cipherHex: string): string {
-  const data = Buffer.from(cipherHex, "hex");
-  const decipher = crypto.createDecipheriv(DETERMINISTIC_ALGORITHM, KEY, DETERMINISTIC_IV);
+  try {
+    const data = Buffer.from(cipherHex, "hex");
+    const decipher = crypto.createDecipheriv(
+      DETERMINISTIC_ALGORITHM,
+      KEY,
+      DETERMINISTIC_IV
+    );
 
-  const decrypted = Buffer.concat([
-    decipher.update(data),
-    decipher.final(),
-  ]);
+    const decrypted = Buffer.concat([decipher.update(data), decipher.final()]);
 
-  return decrypted.toString("utf8");
+    return decrypted.toString("utf8");
+  } catch (error) {
+    console.error("Error decrypting:", error);
+    return String(error);
+  }
 }

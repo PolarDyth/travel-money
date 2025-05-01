@@ -58,9 +58,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  sessions     Session[]
-  transactions Transaction[] @relation("OperatorTransactions")
-  orders       Order[]       @relation("OperatorOrders")
+  sessions         Session[]
+  transactions     Transaction[]     @relation("OperatorTransactions")
+  orders           Order[]           @relation("OperatorOrders")
+  operatorMessages OperatorMessage[]
 
   @@index([username])
   @@index([email])
@@ -176,9 +177,11 @@ model Order {
   paidAt        DateTime?
 
   // Workflow
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  status         OrderStatus @default(PENDING)
+  collectionDate DateTime    @default(now())
+  collectedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   // Line items
   items OrderItem[]
@@ -220,6 +223,18 @@ model RequestedDenomination {
   quantity     Int
 
   @@index([orderItemId])
+}
+
+model OperatorMessage {
+  id        String   @id @default(cuid())
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  @@index([userId])
 }
 
 model ChatSession {

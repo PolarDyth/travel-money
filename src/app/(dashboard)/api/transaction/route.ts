@@ -224,7 +224,7 @@ export async function GET(req: NextRequest) {
 
   if (transactionId) {
     // Fetch specific transaction
-    const transaction: TransactionWithRelations | null = await prisma.transaction.findUnique({
+    const transaction = await prisma.transaction.findUnique({
       where: { id: Number(transactionId) },
       include: {
         customer: true,
@@ -246,7 +246,7 @@ export async function GET(req: NextRequest) {
     });
   } else {
     // Fetch all currencies
-    const transactions: TransactionWithRelations[] = await prisma.transaction.findMany({
+    const transactions = await prisma.transaction.findMany({
       include: {
         customer: true,
         currencyDetails: { include: { currency: true } },
