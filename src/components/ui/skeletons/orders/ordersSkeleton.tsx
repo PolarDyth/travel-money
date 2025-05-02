@@ -3,7 +3,6 @@ import { ScrollArea } from "../../scroll-area";
 import { Skeleton } from "../../skeleton";
 
 export default function OrdersSkeleton() {
-  const skeletonOrders = Array.from({ length: 5 });
 
   return (
     <Card className="lg:col-span-3">

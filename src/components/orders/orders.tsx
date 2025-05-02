@@ -20,7 +20,6 @@ import {
 } from "@/app/(dashboard)/orders/context/OrdersContext";
 import { OrderStatus } from "../../../generated/prisma";
 import OrdersSkeleton from "../ui/skeletons/orders/ordersSkeleton";
-import { useEffect } from "react";
 import { OrderDetailsDialog } from "./orderDetails";
 
 export default function Orders() {

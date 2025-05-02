@@ -63,12 +63,10 @@ export async function POST(req: NextRequest) {
           countryEnc: encryptToString(
             validated.data.customerInfo.customerCountry
           ),
-          emailEnc: encryptToString(
-            validated.data.customerInfo.customerEmail ?? ""
-          ),
-          phoneEnc: encryptToString(
-            validated.data.customerInfo.customerPhone ?? ""
-          ),
+          emailEnc: validated.data.customerInfo.customerEmail != "" && validated.data.customerInfo.customerEmail != undefined ? encryptToString(
+            validated.data.customerInfo.customerEmail) : null, 
+          phoneEnc: validated.data.customerInfo.customerPhone != "" && validated.data.customerInfo.customerPhone != undefined ? encryptToString(
+            validated.data.customerInfo.customerPhone) : null,
 
           // Primary ID
           ...(validated.data.customerInfo.primaryId && {

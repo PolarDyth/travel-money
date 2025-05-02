@@ -29,8 +29,23 @@ export async function GET() {
             currency: true,
           },
         },
-        customer: true,
-        operator: true,
+        customer: {
+          select: {
+            firstNameEnc: true,
+            lastNameEnc: true,
+            emailEnc: true,
+            phoneEnc: true,
+            primaryIdNumberEnc: true,
+            id: true,
+          }
+        },
+        operator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          }
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -57,6 +72,8 @@ export async function GET() {
         ...order.customer,
         firstNameEnc: decryptDeterministic(order.customer.firstNameEnc) ?? "",
         lastNameEnc: decryptDeterministic(order.customer.lastNameEnc) ?? "",
+        emailEnc: order.customer.emailEnc ? decryptFromString(order.customer.emailEnc) : "",
+        phoneEnc: order.customer.phoneEnc ? decryptFromString(order.customer.phoneEnc) : "",
       }
     }));
 

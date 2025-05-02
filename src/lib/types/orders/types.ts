@@ -8,7 +8,21 @@ export type Order = Prisma.OrderGetPayload<{
         requestedDenoms: true;
       }
     },
-    customer: true;
+    customer: {
+      select: {
+        firstNameEnc: true,
+        lastNameEnc: true,
+        emailEnc: true,
+        phoneEnc: true,
+        primaryIdNumberEnc: true,
+        id: true,
+      }
+    },
     operator: true;
   };
 }>;
+
+export interface CustomerOrder {
+  totalOrders: number;
+  totalSpent: number;
+}
